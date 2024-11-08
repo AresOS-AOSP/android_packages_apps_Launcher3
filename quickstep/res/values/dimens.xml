@@ -126,8 +126,8 @@
     <dimen name="task_dismiss_button_margin">4dp</dimen>
 
     <!-- Overrideable in overlay that provides the Overview Actions. -->
-    <dimen name="overview_actions_top_margin">24dp</dimen>
-    <dimen name="overview_actions_height">48dp</dimen>
+    <dimen name="overview_actions_top_margin">30dp</dimen>
+    <dimen name="overview_actions_height">126dp</dimen>
     <dimen name="overview_actions_button_spacing">16dp</dimen>
     <dimen name="overview_actions_button_radius">28dp</dimen>
     <dimen name="overview_actions_button_vertical_padding">10dp</dimen>

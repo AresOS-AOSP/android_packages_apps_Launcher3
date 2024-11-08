@@ -28,7 +28,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -153,12 +153,12 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
     /** Container for the action buttons below a focused, non-split Overview tile. */
     protected LinearLayout mActionButtons;
-    private Button mSplitButton;
+    private ImageButton mSplitButton;
     /**
      * The "save app pair" button. Currently this is the only button that is not contained in
      * mActionButtons, since it is the sole button that appears for a grouped task.
      */
-    private Button mSaveAppPairButton;
+    private ImageButton mSaveAppPairButton;
 
     @ActionsHiddenFlags
     private int mHiddenFlags;
@@ -242,7 +242,6 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         // Currently, the only grouped task action is "save app pairs".
         mActionButtons = findViewById(R.id.action_buttons);
         mSaveAppPairButton = findViewById(R.id.action_save_app_pair);
-        TypefaceUtils.setTypeface(mSaveAppPairButton, FontFamily.GSF_LABEL_LARGE);
         // Initialize a list to hold alphas for mActionButtons and any group action buttons.
         mMultiValueAlphas[ACTIONS_ALPHAS] = new MultiValueAlpha(mActionButtons, NUM_ALPHAS);
         mMultiValueAlphas[GROUP_ACTIONS_ALPHAS] =
@@ -296,7 +295,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         mSaveAppPairButton.setOnClickListener(this);
 
         View clearallButton = findViewById(R.id.action_clear_all);
-        View clearallButtonSpace = findViewById(R.id.action_clear_all_space);
+        View clearallButtonSpace = findViewById(R.id.clear_all_container);
         clearallButton.setOnClickListener(this);
         clearallButton.setVisibility(mClearAll ? VISIBLE : GONE);
         clearallButtonSpace.setVisibility(mClearAll ? VISIBLE : GONE);
@@ -561,19 +560,14 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
         requestLayout();
 
-        if (mSplitButton != null) {
-            mSplitButton.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                dp.isLeftRightSplit ? R.drawable.ic_split_horizontal : R.drawable.ic_split_vertical,
-                0, 0, 0
-            );
-        }
+        int splitIconRes = dp.isLeftRightSplit
+                ? R.drawable.ic_split_horizontal
+                : R.drawable.ic_split_vertical;
+        mSplitButton.setImageResource(splitIconRes);
 
-        if (mSaveAppPairButton != null) {
-            mSaveAppPairButton.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                dp.isLeftRightSplit ? R.drawable.ic_save_app_pair_left_right
-                                    : R.drawable.ic_save_app_pair_up_down,
-                0, 0, 0
-            );
-        }
+        int appPairIconRes = dp.isLeftRightSplit
+                ? R.drawable.ic_save_app_pair_left_right
+                : R.drawable.ic_save_app_pair_up_down;
+        mSaveAppPairButton.setImageResource(appPairIconRes);
     }
 }

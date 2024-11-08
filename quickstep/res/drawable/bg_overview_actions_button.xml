@@ -11,7 +11,6 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-
 <ripple android:color="@android:color/system_accent1_400"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:androidprv="http://schemas.android.com/apk/prv/res/android">
@@ -19,7 +18,7 @@
         <shape android:shape="rectangle"
             android:tint="?colorButtonNormal">
             <corners android:radius="@dimen/recents_clear_all_outline_radius" />
-            <solid android:color="@color/materialColorPrimaryContainer"/>
+            <solid android:color="@color/meminfo_bg"/>
         </shape>
     </item>
 </ripple>
