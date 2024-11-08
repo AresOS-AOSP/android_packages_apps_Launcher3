@@ -14,99 +14,124 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<com.android.quickstep.views.OverviewActionsView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<com.android.quickstep.views.OverviewActionsView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal|bottom"
-    android:theme="?attr/overviewActionsContainerStyle"
-    tools:ignore="ButtonStyle">
+    android:layout_gravity="center_horizontal|bottom">
 
     <LinearLayout
         android:id="@+id/action_buttons"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/overview_actions_height"
         android:layout_gravity="bottom|center_horizontal"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <Space
-            android:id="@+id/action_screenshot_space"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            android:visibility="gone" />
+        <LinearLayout
+            android:id="@+id/clear_all_container"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/action_screenshot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="6dp"
-            android:drawableStart="@drawable/ic_screenshot"
-            android:text="@string/recents_screenshot_title"
-            android:visibility="gone" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
-        <Space
-            android:id="@+id/action_split_space"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            android:visibility="gone" />
+            <Button
+                android:id="@+id/action_clear_all"
+                style="@style/OverviewActionButton"
+                android:layout_width="150dp"
+                android:layout_height="48dp"
+                android:text="@string/recents_clear_all_title"
+                android:tint="?android:attr/colorAccent"
+                android:textColor="?android:attr/colorAccent"
+                android:background="@drawable/bg_overview_actions_button"
+                android:visibility="gone" />
 
-        <Button
-            android:id="@+id/action_split"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_split"
-            android:visibility="gone" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
-        <Space
-            android:id="@+id/action_lens_space"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            android:visibility="gone" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/action_lens"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="6dp"
-            android:drawableStart="@drawable/ic_lens"
-            android:text="@string/recents_lens_title"
-            android:visibility="gone" />
+        <LinearLayout
+        	android:id="@+id/second_overview_actions_container"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
 
-        <Space
-            android:id="@+id/action_clear_all_space"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            android:visibility="gone" />
+            <Space
+                android:id="@+id/action_screenshot_space"
+                android:layout_width="24dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
 
-        <Button
-            android:id="@+id/action_clear_all"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="6dp"
-            android:drawableStart="@drawable/ic_clear_all"
-            android:text="@string/recents_clear_all_title"
-            android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/action_screenshot"
+                style="@style/OverviewActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_screenshot"
+                android:tint="?android:attr/colorAccent"
+                android:background="@drawable/bg_overview_actions_button"
+                android:theme="@style/ThemeControlHighlightWorkspaceColor"
+                android:visibility="gone" />
 
-        <Space
-            android:id="@+id/end_space"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
+            <Space
+                android:id="@+id/action_split_space"
+                android:layout_width="24dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
 
+            <ImageButton
+                android:id="@+id/action_split"
+                style="@style/OverviewActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:theme="@style/ThemeControlHighlightWorkspaceColor"
+                android:visibility="gone" />
+
+            <Space
+                android:id="@+id/action_lens_space"
+                android:layout_width="24dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/action_lens"
+                style="@style/OverviewActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_lens"
+                android:tint="?android:attr/colorAccent"
+                android:background="@drawable/bg_overview_actions_button"
+                android:theme="@style/ThemeControlHighlightWorkspaceColor"
+                android:visibility="gone" />
+
+            <Space
+                android:id="@+id/end_space"
+                android:layout_width="24dp"
+                android:layout_height="1dp" />
+
+        </LinearLayout>
+        
     </LinearLayout>
 
     <!-- Currently, the only "group action button" is this save app pair button. If more are added,
     a new LinearLayout may be needed to contain them, but beware of increased memory usage. -->
-    <Button
+    <ImageButton
         android:id="@+id/action_save_app_pair"
+        style="@style/OverviewActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/action_save_app_pair"
+        android:tint="?android:attr/colorAccent"
+        android:background="@drawable/bg_overview_actions_button"
+        android:theme="@style/ThemeControlHighlightWorkspaceColor"
         android:layout_gravity="bottom|center_horizontal"
         android:visibility="gone" />
 
