@@ -234,6 +234,10 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
         if (LauncherPrefs.SLEEP_GESTURE.get(context)) {
             if (LauncherPrefs.SLEEP_GESTURE_HAPTIC.get(context))
                 VibratorWrapper.INSTANCE.get(context).vibrate(VibratorWrapper.EFFECT_CLICK);
+            com.android.quickstep.SystemUiProxy.INSTANCE.get(context).notifyGoingToSleepByDoubleClick(
+                (int) mTouchDownPoint.x,
+                (int) mTouchDownPoint.y
+            );
             mPm.goToSleep(event.getEventTime());
         }
         return true;
