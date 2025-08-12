@@ -117,7 +117,6 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
                     .sendToTarget();
         });
 
-        // Make sure a frame gets scheduled.
-        view.invalidate();
+        view.post(view::invalidate);
     }
 }
