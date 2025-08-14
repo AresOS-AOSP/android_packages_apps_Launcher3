@@ -168,7 +168,7 @@ public class InfoBottomSheet extends WidgetsBottomSheet {
 
                     sourcePref.setSummary(source);
                     lastUpdatePref.setSummary(lastUpdate);
-                    versionPref.setSummary(version);
+                    versionPref.setSummary(mComponent.getPackageName() + " " + version);
                     morePref.setOnPreferenceClickListener(this);
 
                     if (marketIntent != null) {
