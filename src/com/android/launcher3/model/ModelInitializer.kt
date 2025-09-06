@@ -145,6 +145,11 @@ constructor(
             iconProvider.registerIconChangeListener(model::onAppIconChanged, MODEL_EXECUTOR.handler)
         )
 
+        // lawnicon support
+        lifeCycle.addCloseable(
+            iconProvider.registerPackageChangeListener()
+        )
+
         // Install session changes
         lifeCycle.addCloseable(installSessionHelper.registerInstallTracker(modelCallbacks))
     }

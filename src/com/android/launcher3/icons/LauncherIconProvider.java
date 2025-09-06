@@ -84,7 +84,6 @@ public class LauncherIconProvider extends IconProvider {
         mThemeManager = themeManager;
         mApiWrapper = apiWrapper;
         setIconThemeSupported(mThemeManager.isMonoThemeEnabled());
-        registerPackageChangeListener();
     }
 
     /**
@@ -221,6 +220,7 @@ public class LauncherIconProvider extends IconProvider {
         public void close() {
             try {
                 mContext.unregisterReceiver(this);
+                Log.d(TAG, "PackageChangeReceiver closed");
             } catch (Exception ignored) { }
         }
     }
