@@ -518,9 +518,11 @@ public class TaskbarManager implements DisplayDecorationListener {
                 .register(NAVBAR_IME_SPACE, mOnTaskBarChangeListener);
         SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
                 .registerDisplayDecorationListener(this);
-        mShutdownReceiver =
+	mShutdownReceiver =
                 new SimpleBroadcastReceiver(
-                        mPrimaryWindowContext, UI_HELPER_EXECUTOR, i -> destroyAllTaskbars());
+                        mPrimaryWindowContext,
+                        UI_HELPER_EXECUTOR,
+                        i -> MAIN_EXECUTOR.execute(this::destroyAllTaskbars));
         mTaskbarBroadcastReceiver =
                 new SimpleBroadcastReceiver(mPrimaryWindowContext,
                         UI_HELPER_EXECUTOR, this::showTaskbarFromBroadcast);
