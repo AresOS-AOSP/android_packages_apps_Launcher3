@@ -220,7 +220,9 @@ public class ClipIconView extends View implements ClipPathView {
         } else {
             sTmpRect.offsetTo(sTmpRect.left, (int) (mFinalDrawableBounds.top * scale));
         }
+        if (mBackground != null) {
         mBackground.setBounds(sTmpRect);
+        }
     }
 
     protected void endReveal() {
