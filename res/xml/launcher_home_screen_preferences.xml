@@ -216,7 +216,7 @@
             android:entries="@array/quickspace_weather_provider_entries"
             android:entryValues="@array/quickspace_weather_provider_values"
             android:dependency="pref_quickspace_weather"
-            android:defaultValue="auto"
+            android:defaultValue="seraphix"
             launcher:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
