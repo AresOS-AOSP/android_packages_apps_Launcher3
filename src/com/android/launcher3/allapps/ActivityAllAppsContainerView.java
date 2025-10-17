@@ -323,6 +323,12 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
              mSearchContainer.setVisibility(View.VISIBLE);
         }
 
+        if (!LauncherPrefs.DOCK_THEME.get(getContext())) {
+             getSearchView().setBackgroundResource(R.drawable.bg_all_apps_searchbox_google);
+        } else {
+             getSearchView().setBackgroundResource(R.drawable.bg_all_apps_searchbox_google_themed);
+        }
+
         mAH.get(SEARCH).setup(mSearchRecyclerView,
                 /* Filter out A-Z apps */ itemInfo -> false);
         rebindAdapters(true /* force */);
@@ -939,6 +945,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mHeaderColor = headerColor;
             mTabsProtectionAlpha = tabsAlpha;
             invalidateHeader();
+        }
+        if (!LauncherPrefs.DOCK_THEME.get(getContext())) {
+            getSearchView().setBackgroundResource(R.drawable.bg_all_apps_searchbox_google);
+        } else {
+            getSearchView().setBackgroundResource(R.drawable.bg_all_apps_searchbox_google_themed);
         }
         if (mSearchUiManager.getEditText() == null) {
             return;
