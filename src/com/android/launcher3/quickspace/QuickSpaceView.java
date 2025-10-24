@@ -38,6 +38,9 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.quickspace.QuickspaceController.OnDataListener;
 import com.android.launcher3.quickspace.receivers.QuickSpaceActionReceiver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class QuickSpaceView extends FrameLayout implements OnDataListener {
 
     private static final String TAG = "Launcher3:QuickSpaceView";
@@ -62,10 +65,56 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     public boolean mWeatherAvailable;
     private boolean mFinishedInflate;
     private boolean mListenerRegistered;
+    private boolean mDestroyed;
 
     private boolean mIsAlternateStyle = false;
 
     public QuickspaceController mController;
+    private final List<MarqueeLayoutListener> mMarqueeLayoutListeners = new ArrayList<>();
+
+    private static final class MarqueeLayoutListener
+            implements ViewTreeObserver.OnGlobalLayoutListener {
+        private final TextView mTextView;
+        private final QuickSpaceView mQuickSpaceView;
+        private final float mTextWidth;
+
+        MarqueeLayoutListener(QuickSpaceView quickSpaceView, TextView textView, float textWidth) {
+            mQuickSpaceView = quickSpaceView;
+            mTextView = textView;
+            mTextWidth = textWidth;
+        }
+
+        @Override
+        public void onGlobalLayout() {
+            try {
+                if (mQuickSpaceView.mDestroyed || !mTextView.isAttachedToWindow()) {
+                    remove();
+                    return;
+                }
+                android.text.Layout layout = mTextView.getLayout();
+                if (layout != null && layout.getEllipsizedWidth() < mTextWidth) {
+                    mTextView.setEllipsize(TruncateAt.MARQUEE);
+                    mTextView.setMarqueeRepeatLimit(1);
+                    mTextView.setSelected(true);
+                }
+            } catch (Exception e) {
+                // Ignore listener removal races during detach.
+            } finally {
+                remove();
+            }
+        }
+
+        void remove() {
+            try {
+                if (mTextView.isAttachedToWindow()) {
+                    mTextView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            } catch (Exception e) {
+                // Ignore detach races.
+            }
+            mQuickSpaceView.mMarqueeLayoutListeners.remove(this);
+        }
+    }
 
     public QuickSpaceView(Context context, AttributeSet set) {
         super(context, set);
@@ -78,7 +127,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
 
     @Override
     public void onDataUpdated() {
-        if (mController == null) return;
+        if (mController == null || mDestroyed) return;
         boolean altUI = LauncherPrefs.SHOW_QUICKSPACE_ALT.get(getContext());
         if (mEventTitle == null || mIsAlternateStyle != altUI) {
             prepareLayout(altUI);
@@ -89,6 +138,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private final void loadDoubleLine(boolean useAlternativeQuickspaceUI) {
+        if (mController == null || mDestroyed) return;
         mEventTitle.setText(mController.getEventController().getTitle());
         if (useAlternativeQuickspaceUI) {
             String greetingsExt = mController.getEventController().getGreetings();
@@ -150,29 +200,33 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private void maybeSetMarquee(TextView tv) {
+        if (mDestroyed || tv == null || !tv.isAttachedToWindow()) return;
         tv.setSelected(false);
         tv.setEllipsize(TruncateAt.END);
         final float textWidth = tv.getPaint().measureText(tv.getText().toString());
-        tv.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if (!tv.isAttachedToWindow()) { remove(); return; }
-                android.text.Layout layout = tv.getLayout();
-                if (layout != null && layout.getEllipsizedWidth() < textWidth) {
-                    tv.setEllipsize(TruncateAt.MARQUEE);
-                    tv.setMarqueeRepeatLimit(1);
-                    tv.setSelected(true);
-                }
-                remove();
-            }
+        cleanupMarqueeListener(tv);
+        MarqueeLayoutListener listener = new MarqueeLayoutListener(this, tv, textWidth);
+        mMarqueeLayoutListeners.add(listener);
+        tv.getViewTreeObserver().addOnGlobalLayoutListener(listener);
+    }
 
-            private void remove() {
-                tv.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+    private void cleanupMarqueeListener(TextView textView) {
+        for (int i = mMarqueeLayoutListeners.size() - 1; i >= 0; i--) {
+            MarqueeLayoutListener listener = mMarqueeLayoutListeners.get(i);
+            if (listener.mTextView == textView) {
+                listener.remove();
             }
-        });
+        }
+    }
+
+    private void cleanupAllMarqueeListeners() {
+        for (int i = mMarqueeLayoutListeners.size() - 1; i >= 0; i--) {
+            mMarqueeLayoutListeners.get(i).remove();
+        }
     }
 
     private void setEventSubIcon() {
+        if (mDestroyed || mController == null) return;
         Drawable icon = mController.getEventController().getActionIcon();
         if (icon != null) {
             if (mEventSubIcon.getVisibility() != View.VISIBLE) {
@@ -187,6 +241,9 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private final void bindWeather(View container, TextView title, ImageView icon) {
+        if (mDestroyed || mController == null || container == null || title == null || icon == null) {
+            return;
+        }
         if (!mWeatherAvailable || mController.getEventController().isNowPlaying()) {
             container.setVisibility(View.GONE);
             return;
@@ -225,8 +282,10 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private void clearOldViewState() {
+        cleanupAllMarqueeListeners();
         View[] vs = new View[]{ mEventTitle, mEventTitleSub, mEventTitleSubColored,
-                mNowPlayingIcon, mEventSubIcon, mWeatherContentSub, mWeatherIconSub, mWeatherTempSub };
+                mNowPlayingIcon, mEventSubIcon, mWeatherContentSub, mWeatherIconSub,
+                mWeatherTempSub, mGreetingsExt, mGreetingsExtClock };
         for (View v : vs) if (v != null) {
             v.animate().cancel();
             v.setOnClickListener(null);
@@ -234,12 +293,14 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
                 ImageView iv = (ImageView) v;
                 iv.setImageDrawable(null);
                 iv.setImageBitmap(null);
+                iv.setImageTintList(null);
                 iv.setBackground(null);
             } else if (v instanceof TextView) {
                 TextView tv = (TextView) v;
                 tv.setSelected(false);
                 tv.setEllipsize(null);
                 tv.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+                tv.setText(null);
                 tv.setBackground(null);
             } else {
                 v.setBackground(null);
@@ -248,6 +309,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private void prepareLayout(boolean alt) {
+        if (mDestroyed) return;
         mIsAlternateStyle = alt;
         int insertIndex = (mQuickspaceContent != null) ? indexOfChild(mQuickspaceContent) : -1;
         if (mQuickspaceContent != null) {
@@ -265,6 +327,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private void getQuickSpaceView() {
+        if (mDestroyed || mQuickspaceContent == null) return;
         if (mQuickspaceContent.getVisibility() != View.VISIBLE) {
             mQuickspaceContent.setVisibility(View.VISIBLE);
             mQuickspaceContent.setAlpha(0.0f);
@@ -276,6 +339,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     private static final Interpolator ANIMATE_OUT = new AccelerateInterpolator();
 
     private void animateIn(View view) {
+        if (mDestroyed || view == null) return;
         if (view.getVisibility() == View.VISIBLE && view.getAlpha() == 1f) {
             return; // Already visible
         }
@@ -291,6 +355,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     private void animateOut(View view) {
+        if (mDestroyed || view == null) return;
         if (view.getVisibility() != View.VISIBLE) {
             return; // Already hidden
         }
@@ -299,14 +364,18 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
             .translationY(view.getHeight() / 2f)
             .setDuration(400)
             .setInterpolator(ANIMATE_OUT)
-            .withEndAction(() -> view.setVisibility(View.GONE))
+            .withEndAction(() -> {
+                if (!mDestroyed) {
+                    view.setVisibility(View.GONE);
+                }
+            })
             .start();
     }
 
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (mController != null && mFinishedInflate && !mListenerRegistered) {
+        if (!mDestroyed && mController != null && mFinishedInflate && !mListenerRegistered) {
             mListenerRegistered = true;
             mController.addListener(this);
         }
@@ -314,19 +383,20 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
 
     @Override
     public void onDetachedFromWindow() {
-        if (mController == null) return;
         clearOldViewState();
         setBackground(null);
         super.onDetachedFromWindow();
-        mController.onPause();
-        mController.removeListener(this);
+        if (mController != null) {
+            mController.onPause();
+            mController.removeListener(this);
+        }
         mListenerRegistered = false;
     }
 
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
-        if (mController == null) return;
+        if (mDestroyed || mController == null) return;
         loadViews();
         mFinishedInflate = true;
         if (isAttachedToWindow() && !mListenerRegistered) {
@@ -344,9 +414,15 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
     }
 
     public void onDestroy() {
-        if (mController == null) return;
-        mController.onDestroy();
-        mController = null;
+        if (mDestroyed) return;
+        mDestroyed = true;
+        clearOldViewState();
+        setBackground(null);
+        if (mController != null) {
+            mController.onDestroy();
+            mController = null;
+        }
+        mListenerRegistered = false;
         mQuickspaceContent = null;
         mEventSubIcon = null;
         mNowPlayingIcon = null;
@@ -358,6 +434,7 @@ public class QuickSpaceView extends FrameLayout implements OnDataListener {
         mWeatherIconSub = null;
         mWeatherTempSub = null;
         mEventTitle = null;
+        mColorStateList = null;
     }
 
     public void setPadding(int n, int n2, int n3, int n4) {
