@@ -418,7 +418,5 @@
     <string name="background_blur_summary">Set blur depth level for recents and app drawer</string>
 
     <!-- Recent Chips -->
-    <string name="recents_chips_title">Use compact action design</string>
-    <string name="recents_chips_summary">May be required for large numbers of actions to display</string>
-
+    <string name="recents_chips_title">Compact design for action chips</string>
 </resources>

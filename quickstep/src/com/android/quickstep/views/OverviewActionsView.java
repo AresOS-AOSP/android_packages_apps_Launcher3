@@ -262,8 +262,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
         View lensButton = findViewById(!mUseChips ? R.id.action_lens : R.id.action2_lens);
         lensButton.setOnClickListener(this);
-        boolean actualLensVisibility = mLens && Utilities.isGSAEnabled(getContext())
-                && (mUseChips || !mScreenshot || !mClearAll || (mDp != null && mDp.isTablet));
+        boolean actualLensVisibility = mLens && Utilities.isGSAEnabled(getContext());
         lensButton.setVisibility(actualLensVisibility ? VISIBLE : GONE);
         findViewById(R.id.action_lens_space).setVisibility(
                 actualLensVisibility && mUseChips ? VISIBLE : GONE);

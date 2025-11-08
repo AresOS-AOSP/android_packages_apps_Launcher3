@@ -53,8 +53,7 @@
     <SwitchPreferenceCompat
         android:key="pref_recents_chips"
         android:title="@string/recents_chips_title"
-        android:summary="@string/recents_chips_summary"
-        android:defaultValue="true" />
+        android:defaultValue="false" />
 
         <SwitchPreferenceCompat
             android:key="pref_recents_screenshot"
