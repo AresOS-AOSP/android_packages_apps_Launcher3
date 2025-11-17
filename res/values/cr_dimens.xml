@@ -33,7 +33,7 @@
     <dimen name="all_apps_page_indicator_bottom_margin">32dp</dimen>
     <dimen name="all_apps_search_bar_margin_side">38dp</dimen>
     <dimen name="all_apps_search_bar_margin_top">28dp</dimen>
-    <dimen name="all_apps_search_bar_height">48dp</dimen>
+    <dimen name="all_apps_search_bar_height">55dp</dimen>
 
     <!-- Custom icon -->
     <dimen name="icon_picker_cell_size">56dp</dimen>
