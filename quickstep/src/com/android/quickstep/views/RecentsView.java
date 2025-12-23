@@ -184,6 +184,7 @@ import com.android.launcher3.util.CancellableTask;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
+import com.android.launcher3.util.MemoryUtils;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
@@ -964,6 +965,10 @@ public abstract class RecentsView<
         mClearAllButton = (ClearAllButton) LayoutInflater.from(context)
                 .inflate(R.layout.overview_clear_all_button, this, false);
         mClearAllButton.setOnClickListener(this::dismissAllTasks);
+        mClearAllButton.setOnLongClickListener(v -> {
+            performMemoryBoost();
+            return true;
+        });
 
         if (DesktopModeStatus.isMultipleDesktopFrontendEnabledOnDisplay(mContext,
                 mContainer.getDisplay())) {
@@ -1086,6 +1091,22 @@ public abstract class RecentsView<
             mClearAllButton.setText(R.string.recents_clear_all);
             mClearAllButton.setOnClickListener(this::dismissAllTasks);
         }
+    }
+
+    private void performMemoryBoost() {
+        mClearAllButton.setMemoryBoostInProgress(true);
+        mClearAllButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        
+        UI_HELPER_EXECUTOR.execute(() -> {
+            MemoryUtils.releaseMemory();
+
+            mClearAllButton.postDelayed(() -> {
+                mClearAllButton.setMemoryBoostInProgress(false);
+                Toast.makeText(getContext(), 
+                    R.string.memory_boost_applied, 
+                    Toast.LENGTH_SHORT).show();
+            }, 500);
+        });
     }
 
     /**
