@@ -408,4 +408,7 @@
     <!-- Accessibility announcement for closing the nudge window. [CHAR_LIMIT=16] -->
     <string name="nudge_a11y_close">Close</string>
     <string name="nudge_a11y_image">Nudge image</string>
+
+    <!-- Memory Boost -->
+    <string name="memory_boost_applied">Memory optimized</string>
 </resources>

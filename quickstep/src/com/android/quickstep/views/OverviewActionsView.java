@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.HapticFeedbackConstants;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -36,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
@@ -47,6 +49,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.MemoryUtils;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.VibratorWrapper;
@@ -58,6 +61,8 @@ import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
+
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 /**
  * View for showing action buttons in Overview
@@ -202,6 +207,9 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     private static final PathInterpolator LOCK_PILL_INTERP =
             new PathInterpolator(0.2f, 0f, 0f, 1f);
 
+    private boolean mIsPerformingMemoryBoost;
+    private View mClearAllButton;
+
     public OverviewActionsView(Context context) {
         this(context, null);
     }
@@ -251,6 +259,13 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+
+        mClearAllButton = findViewById(R.id.action_clear_all);
+        mClearAllButton.setOnClickListener(this);
+        mClearAllButton.setOnLongClickListener(v -> {
+            performMemoryBoost();
+            return true;
+        });
         // Initialize 2 view containers: one for single tasks, one for grouped tasks.
         // These will take up the same space on the screen and alternate visibility as needed.
         // Currently, the only grouped task action is "save app pairs".
@@ -367,6 +382,61 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         lensButton.setOnClickListener(this);
         lensButton.setVisibility(mLens && Utilities.isGSAEnabled(getContext()) ? VISIBLE : GONE);
         if (lensButtonSpace != null) lensButtonSpace.setVisibility(mLens && Utilities.isGSAEnabled(getContext()) ? VISIBLE : GONE);
+    }
+
+    private void performMemoryBoost() {
+        if (mIsPerformingMemoryBoost) {
+            return;
+        }
+        
+        View clearAllButton = findViewById(R.id.action_clear_all);
+        if (clearAllButton == null) {
+            return;
+        }
+        
+        mIsPerformingMemoryBoost = true;
+        clearAllButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        clearAllButton.animate()
+            .scaleX(0.95f)
+            .scaleY(0.95f)
+            .alpha(0.8f)
+            .setDuration(100)
+            .withEndAction(() -> {
+                UI_HELPER_EXECUTOR.execute(() -> {
+                    MemoryUtils.releaseMemory();
+                    
+                    clearAllButton.postDelayed(() -> {
+                        clearAllButton.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .alpha(1f)
+                            .setDuration(100)
+                            .withEndAction(() -> {
+                                mIsPerformingMemoryBoost = false;
+                            })
+                            .start();
+                        
+                        Toast.makeText(getContext(), 
+                            R.string.memory_boost_applied, 
+                            Toast.LENGTH_SHORT).show();
+                    }, 500);
+                });
+            })
+            .start();
+    }
+
+    public void setMemoryBoostInProgress(boolean inProgress) {
+        if (mIsPerformingMemoryBoost == inProgress) return;
+        mIsPerformingMemoryBoost = inProgress;
+        View clearAllButton = findViewById(R.id.action_clear_all);
+        if (clearAllButton != null) {
+            clearAllButton.animate()
+                .scaleX(inProgress ? 0.95f : 1f)
+                .scaleY(inProgress ? 0.95f : 1f)
+                .alpha(inProgress ? 0.8f : 1f)
+                .setDuration(100)
+                .start();
+        }
     }
 
     /**
