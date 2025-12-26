@@ -325,10 +325,12 @@ public class LauncherBackAnimationController {
         if (mScrimLayer != null) {
             removeScrimLayer();
         }
-        if (mBackTarget != null && mBackTarget.leash.isValid())
+        if (mBackTarget != null && mBackTarget.leash != null && mBackTarget.leash.isValid()) {
             mBackTarget.leash.release();
-        if (mLauncherTarget != null && mLauncherTarget.leash.isValid())
+        }
+        if (mLauncherTarget != null && mLauncherTarget.leash != null && mLauncherTarget.leash.isValid()) {
             mLauncherTarget.leash.release();
+        }
         mBackTarget = null;
         mLauncherTarget = null;
     }
