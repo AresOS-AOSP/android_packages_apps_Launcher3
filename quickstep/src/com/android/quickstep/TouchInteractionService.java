@@ -1110,7 +1110,8 @@ public class TouchInteractionService extends Service {
         final int action = event.getActionMasked();
         // Note this will create a new consumer every mouse click, as after ACTION_UP from the click
         // an ACTION_HOVER_ENTER will fire as well.
-        boolean isHoverActionWithoutConsumer = isHoverActionWithoutConsumer(event);
+        // Pass tac to avoid duplicate getTaskbarForDisplay call
+        boolean isHoverActionWithoutConsumer = isHoverActionWithoutConsumer(event, tac);
 
         TaskAnimationManager taskAnimationManager = mTaskAnimationManagerRepository.get(displayId);
         if (taskAnimationManager == null) {
@@ -1288,11 +1289,13 @@ public class TouchInteractionService extends Service {
         traceToken.close();
     }
 
-    private boolean isHoverActionWithoutConsumer(MotionEvent event) {
+    private boolean isHoverActionWithoutConsumer(MotionEvent event, TaskbarActivityContext tac) {
         // Only process these events when taskbar is present.
-        int displayId = event.getDisplayId();
-        TaskbarActivityContext tac = mTaskbarManager.getTaskbarForDisplay(displayId);
-        boolean isTaskbarPresent = tac != null && tac.getDeviceProfile().isTaskbarPresent
+        // tac is passed in to avoid duplicate getTaskbarForDisplay call
+        if (tac == null) {
+            return false;
+        }
+        boolean isTaskbarPresent = tac.getDeviceProfile().isTaskbarPresent
                 && !tac.isPhoneMode();
         return event.isHoverEvent() && (mUncheckedConsumer.getType() & TYPE_CURSOR_HOVER) == 0
                 && isTaskbarPresent;
