@@ -46,6 +46,7 @@ import android.view.RemoteAnimationAdapter;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl.Transaction;
 import android.view.View;
+import android.view.ViewStub;
 import android.window.RemoteTransition;
 import android.window.SplashScreen;
 
@@ -59,6 +60,7 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAnimationRunner;
 import com.android.launcher3.LauncherAnimationRunner.AnimationResult;
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherRootView;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatorPlaybackController;
@@ -151,6 +153,13 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         mDragLayer = rootView.findViewById(R.id.drag_layer);
         mScrimView = rootView.findViewById(R.id.scrim_view);
         mFallbackRecentsView = rootView.findViewById(R.id.overview_panel);
+
+        ViewStub actionsStub = rootView.findViewById(R.id.overview_actions_view_stub);
+        actionsStub.setLayoutResource(LauncherPrefs.RECENTS_NEW_OVERVIEW_STYLE.get(this)
+                ? R.layout.overview_actions_container
+                : R.layout.overview_actions_container_legacy);
+        actionsStub.inflate();
+
         mActionsView = rootView.findViewById(R.id.overview_actions_view);
         mMemInfoView = rootView.findViewById(R.id.meminfo);
 

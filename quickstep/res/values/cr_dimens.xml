@@ -29,4 +29,8 @@
     <dimen name="taskbar_stashed_handle_height_smaller">2dp</dimen>
     <dimen name="taskbar_stashed_handle_height_small">3dp</dimen>
     <dimen name="taskbar_stashed_handle_height_tall">5dp</dimen>
+
+    <!-- Overview style legacy values -->
+    <dimen name="overview_actions_height_legacy">48dp</dimen>
+    <dimen name="overview_actions_top_margin_legacy">24dp</dimen>
 </resources>

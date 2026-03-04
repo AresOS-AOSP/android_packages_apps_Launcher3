@@ -497,4 +497,8 @@
     <string name="action_lock">Lock/Unlock app</string>
     <string name="unlock_app">Unlocked app in recents</string>
     <string name="lock_app">Locked app in recents</string>
+
+    <!-- New overview style -->
+    <string name="recents_overview_style_title">New overview style</string>
+    <string name="recents_overview_style_summary">Use redesigned action buttons in recents</string>
 </resources>

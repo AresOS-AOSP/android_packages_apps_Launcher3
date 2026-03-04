@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.quickstep.views.OverviewActionsView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal|bottom"
+    android:theme="?attr/overviewActionsContainerStyle"
+    tools:ignore="ButtonStyle">
+
+    <LinearLayout
+        android:id="@+id/action_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/overview_actions_height_legacy"
+        android:layout_gravity="bottom|center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/action_screenshot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="6dp"
+            android:drawableStart="@drawable/ic_screenshot"
+            android:text="@string/recents_screenshot_title"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/action_split"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="6dp"
+            android:text="@string/action_split"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/action_lens"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="6dp"
+            android:drawableStart="@drawable/ic_lens"
+            android:text="@string/recents_lens_title"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/action_clear_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="6dp"
+            android:drawableStart="@drawable/ic_clear_all"
+            android:text="@string/recents_clear_all_title"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/action_save_app_pair"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/action_save_app_pair"
+        android:layout_gravity="bottom|center_horizontal"
+        android:visibility="gone" />
+
+    <!-- Lock pill indicator shown during swipe-down-to-lock gesture -->
+    <FrameLayout
+        android:id="@+id/lock_pill_container"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="80dp"
+        android:visibility="gone"
+        android:background="@drawable/bg_overview_actions_button">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp">
+
+            <ImageView
+                android:id="@+id/lock_pill_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/recents_locked"
+                android:tint="?android:attr/colorAccent"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/lock_pill_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/lock_app"
+                android:textColor="?android:attr/colorAccent"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</com.android.quickstep.views.OverviewActionsView>
