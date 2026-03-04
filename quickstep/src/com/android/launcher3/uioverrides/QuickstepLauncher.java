@@ -111,6 +111,7 @@ import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewStub;
 import android.widget.AnalogClock;
 import android.widget.TextClock;
 import android.window.BackEvent;
@@ -394,6 +395,14 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         super.setupViews();
         mDepthController.setSurfaceTransactionApplier(getRootView());
 
+        ViewStub actionsStub = findViewById(R.id.overview_actions_view_stub);
+        if (actionsStub != null) {
+            actionsStub.setLayoutResource(
+                    LauncherPrefs.RECENTS_NEW_OVERVIEW_STYLE.get(this)
+                            ? R.layout.overview_actions_container
+                            : R.layout.overview_actions_container_legacy);
+            actionsStub.inflate();
+        }
         mActionsView = findViewById(R.id.overview_actions_view);
         mMemInfoView = findViewById(R.id.meminfo);
         RecentsView<?, LauncherState> overviewPanel = getOverviewPanel();

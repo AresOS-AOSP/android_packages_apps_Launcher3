@@ -25,9 +25,12 @@
         android:clipToPadding="false"
         android:visibility="invisible" />
 
-    <include
-        android:id="@+id/overview_actions_view"
-        layout="@layout/overview_actions_container" />
+    <ViewStub
+        android:id="@+id/overview_actions_view_stub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:inflatedId="@+id/overview_actions_view" />
 
     <include
         layout="@layout/meminfo" />

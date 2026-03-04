@@ -28,6 +28,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -153,12 +154,15 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
     /** Container for the action buttons below a focused, non-split Overview tile. */
     protected LinearLayout mActionButtons;
+    private boolean mIsNewStyle;
     private ImageButton mSplitButton;
     /**
      * The "save app pair" button. Currently this is the only button that is not contained in
      * mActionButtons, since it is the sole button that appears for a grouped task.
      */
     private ImageButton mSaveAppPairButton;
+    private Button mSplitButtonLegacy;
+    private Button mSaveAppPairButtonLegacy;
 
     @ActionsHiddenFlags
     private int mHiddenFlags;
@@ -200,6 +204,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     public OverviewActionsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr, 0);
         mPrefs = LauncherPrefs.getPrefs(context);
+        mIsNewStyle = LauncherPrefs.RECENTS_NEW_OVERVIEW_STYLE.get(context);
         mScreenshot = LauncherPrefs.RECENTS_SCREENSHOT.get(context);
         mClearAll = LauncherPrefs.RECENTS_CLEAR_ALL.get(context);
         mLens = LauncherPrefs.RECENTS_LENS.get(context);
@@ -241,11 +246,18 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         // These will take up the same space on the screen and alternate visibility as needed.
         // Currently, the only grouped task action is "save app pairs".
         mActionButtons = findViewById(R.id.action_buttons);
-        mSaveAppPairButton = findViewById(R.id.action_save_app_pair);
-        // Initialize a list to hold alphas for mActionButtons and any group action buttons.
-        mMultiValueAlphas[ACTIONS_ALPHAS] = new MultiValueAlpha(mActionButtons, NUM_ALPHAS);
-        mMultiValueAlphas[GROUP_ACTIONS_ALPHAS] =
-                new MultiValueAlpha(mSaveAppPairButton, NUM_ALPHAS);
+        if (mIsNewStyle) {
+            mSaveAppPairButton = findViewById(R.id.action_save_app_pair);
+            mMultiValueAlphas[ACTIONS_ALPHAS] = new MultiValueAlpha(mActionButtons, NUM_ALPHAS);
+            mMultiValueAlphas[GROUP_ACTIONS_ALPHAS] =
+                    new MultiValueAlpha(mSaveAppPairButton, NUM_ALPHAS);
+        } else {
+            mSaveAppPairButtonLegacy = findViewById(R.id.action_save_app_pair);
+            TypefaceUtils.setTypeface(mSaveAppPairButtonLegacy, FontFamily.GSF_LABEL_LARGE);
+            mMultiValueAlphas[ACTIONS_ALPHAS] = new MultiValueAlpha(mActionButtons, NUM_ALPHAS);
+            mMultiValueAlphas[GROUP_ACTIONS_ALPHAS] =
+                    new MultiValueAlpha(mSaveAppPairButtonLegacy, NUM_ALPHAS);
+        }
         Arrays.stream(mMultiValueAlphas).forEach(a -> a.setUpdateVisibility(true));
         // To control alpha simultaneously on mActionButtons and any group action buttons, we set up
         // an AnimatedFloat for each alpha property.
@@ -285,26 +297,32 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         // an ImageButton in go launcher (does not share a common class with Button). Take care when
         // casting this.
         View screenshotButton = findViewById(R.id.action_screenshot);
-        View screenshotButtonSpace = findViewById(R.id.action_screenshot_space);
+        View screenshotButtonSpace = mIsNewStyle ? findViewById(R.id.action_screenshot_space) : null;
         screenshotButton.setOnClickListener(this);
         screenshotButton.setVisibility(mScreenshot ? VISIBLE : GONE);
-        screenshotButtonSpace.setVisibility(mScreenshot ? VISIBLE : GONE);
+        if (screenshotButtonSpace != null) screenshotButtonSpace.setVisibility(mScreenshot ? VISIBLE : GONE);
 
-        mSplitButton = findViewById(R.id.action_split);
-        mSplitButton.setOnClickListener(this);
-        mSaveAppPairButton.setOnClickListener(this);
+        if (mIsNewStyle) {
+            mSplitButton = findViewById(R.id.action_split);
+            mSplitButton.setOnClickListener(this);
+            mSaveAppPairButton.setOnClickListener(this);
+        } else {
+            mSplitButtonLegacy = findViewById(R.id.action_split);
+            mSplitButtonLegacy.setOnClickListener(this);
+            mSaveAppPairButtonLegacy.setOnClickListener(this);
+        }
 
         View clearallButton = findViewById(R.id.action_clear_all);
-        View clearallButtonSpace = findViewById(R.id.clear_all_container);
+        View clearallButtonSpace = mIsNewStyle ? findViewById(R.id.clear_all_container) : null;
         clearallButton.setOnClickListener(this);
         clearallButton.setVisibility(mClearAll ? VISIBLE : GONE);
-        clearallButtonSpace.setVisibility(mClearAll ? VISIBLE : GONE);
+        if (clearallButtonSpace != null) clearallButtonSpace.setVisibility(mClearAll ? VISIBLE : GONE);
 
         View lensButton = findViewById(R.id.action_lens);
-        View lensButtonSpace = findViewById(R.id.action_lens_space);
+        View lensButtonSpace = mIsNewStyle ? findViewById(R.id.action_lens_space) : null;
         lensButton.setOnClickListener(this);
         lensButton.setVisibility(mLens && Utilities.isGSAEnabled(getContext()) ? VISIBLE : GONE);
-        lensButtonSpace.setVisibility(mLens && Utilities.isGSAEnabled(getContext()) ? VISIBLE : GONE);
+        if (lensButtonSpace != null) lensButtonSpace.setVisibility(mLens && Utilities.isGSAEnabled(getContext()) ? VISIBLE : GONE);
     }
 
     /**
@@ -459,19 +477,21 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
      * @param flag   The flag to update.
      * @param enable Whether to enable the hidden flag: True will cause view to be hidden.
      */
-    void updateSplitButtonHiddenFlags(@SplitButtonHiddenFlags int flag,
-            boolean enable) {
-        if (mSplitButton == null) return;
+    void updateSplitButtonHiddenFlags(@SplitButtonHiddenFlags int flag, boolean enable) {
+        View splitButton = mIsNewStyle ? mSplitButton : mSplitButtonLegacy;
+        if (splitButton == null) return;
         if (enable) {
             mSplitButtonHiddenFlags |= flag;
         } else {
             mSplitButtonHiddenFlags &= ~flag;
         }
         int desiredVisibility = mSplitButtonHiddenFlags == 0 ? VISIBLE : GONE;
-        if (mSplitButton.getVisibility() != desiredVisibility) {
-            View splitButtonSpace = findViewById(R.id.action_split_space);
-            mSplitButton.setVisibility(desiredVisibility);
-            splitButtonSpace.setVisibility(desiredVisibility);
+        if (splitButton.getVisibility() != desiredVisibility) {
+            splitButton.setVisibility(desiredVisibility);
+            if (mIsNewStyle) {
+                View splitButtonSpace = findViewById(R.id.action_split_space);
+                if (splitButtonSpace != null) splitButtonSpace.setVisibility(desiredVisibility);
+            }
             mActionButtons.requestLayout();
         }
     }
@@ -501,7 +521,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
      */
     public boolean areActionsButtonsVisible() {
         return mActionButtons.getVisibility() == View.VISIBLE
-                || mSaveAppPairButton.getVisibility() == View.VISIBLE;
+                || (mIsNewStyle ? mSaveAppPairButton : mSaveAppPairButtonLegacy).getVisibility() == View.VISIBLE;
     }
 
     /**
@@ -515,7 +535,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     /** Updates vertical margins for different navigation mode or configuration changes. */
     public void updateVerticalMargin(NavigationMode mode) {
         updateActionBarPosition(mActionButtons);
-        updateActionBarPosition(mSaveAppPairButton);
+        updateActionBarPosition(mIsNewStyle ? mSaveAppPairButton : mSaveAppPairButtonLegacy);
     }
 
     /** Positions actions buttons according to device settings and insets. */
@@ -560,14 +580,24 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
         requestLayout();
 
-        int splitIconRes = dp.isLeftRightSplit
-                ? R.drawable.ic_split_horizontal
-                : R.drawable.ic_split_vertical;
-        mSplitButton.setImageResource(splitIconRes);
+        if (mIsNewStyle) {
+            int splitIconRes = dp.isLeftRightSplit
+                    ? R.drawable.ic_split_horizontal
+                    : R.drawable.ic_split_vertical;
+            mSplitButton.setImageResource(splitIconRes);
 
-        int appPairIconRes = dp.isLeftRightSplit
-                ? R.drawable.ic_save_app_pair_left_right
-                : R.drawable.ic_save_app_pair_up_down;
-        mSaveAppPairButton.setImageResource(appPairIconRes);
+            int appPairIconRes = dp.isLeftRightSplit
+                    ? R.drawable.ic_save_app_pair_left_right
+                    : R.drawable.ic_save_app_pair_up_down;
+            mSaveAppPairButton.setImageResource(appPairIconRes);
+        } else {
+            mSplitButtonLegacy.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    dp.isLeftRightSplit ? R.drawable.ic_split_horizontal : R.drawable.ic_split_vertical,
+                    0, 0, 0);
+            mSaveAppPairButtonLegacy.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    dp.isLeftRightSplit ? R.drawable.ic_save_app_pair_left_right
+                                        : R.drawable.ic_save_app_pair_up_down,
+                    0, 0, 0);
+        }
     }
 }

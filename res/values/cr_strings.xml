@@ -523,4 +523,8 @@
     <string name="app_info_custom_icon_title">Custom icon</string>
     <string name="app_info_custom_icon_summary">Pick any icon from any icon pack</string>
     <string name="icon_picker_search_hint">Search icons</string>
+
+    <!-- New overview style -->
+    <string name="recents_overview_style_title">New overview style</string>
+    <string name="recents_overview_style_summary">Use redesigned action buttons in recents</string>
 </resources>
