@@ -314,7 +314,7 @@ public class DeviceProfile {
         // Some more constants.
         final Resources res = context.getResources();
 
-        overviewProfile = OverviewProfile.Factory.createOverviewProfile(res);
+        overviewProfile = OverviewProfile.Factory.createOverviewProfile(res, context);
 
         mMetrics = res.getDisplayMetrics();
 

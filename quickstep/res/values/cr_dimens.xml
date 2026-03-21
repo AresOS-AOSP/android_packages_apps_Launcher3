@@ -33,4 +33,5 @@
     <!-- Overview style legacy values -->
     <dimen name="overview_actions_height_legacy">48dp</dimen>
     <dimen name="overview_actions_top_margin_legacy">24dp</dimen>
+    <dimen name="overview_actions_bottom_margin_legacy">134dp</dimen>
 </resources>

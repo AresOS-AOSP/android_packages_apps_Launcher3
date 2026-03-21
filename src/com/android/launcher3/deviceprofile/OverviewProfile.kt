@@ -16,9 +16,11 @@
 
 package com.android.launcher3.deviceprofile
 
+import android.content.Context
 import android.content.res.Resources
 import com.android.launcher3.Flags
 import com.android.launcher3.R
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 
 data class OverviewProfile(
@@ -35,12 +37,13 @@ data class OverviewProfile(
 ) {
 
     companion object Factory {
-        fun createOverviewProfile(res: Resources): OverviewProfile {
+        fun createOverviewProfile(res: Resources, context: Context): OverviewProfile {
             val taskIconSizePx =
                 if (enableOverviewIconMenu())
                     res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_drawable_touch_size)
                 else res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_size)
             val taskMarginPx = res.getDimensionPixelSize(R.dimen.overview_task_margin)
+            val mIsNewStyle = LauncherPrefs.RECENTS_NEW_OVERVIEW_STYLE.get(context)
             return OverviewProfile(
                 taskMarginPx = taskMarginPx,
                 taskIconSizePx = taskIconSizePx,
@@ -53,7 +56,10 @@ data class OverviewProfile(
                 // Don't add margin with floating search bar to minimize risk of overlapping.
                 actionsTopMarginPx =
                     if (Flags.floatingSearchBar()) 0
-                    else res.getDimensionPixelSize(R.dimen.overview_actions_top_margin),
+                    else res.getDimensionPixelSize(
+                        if (mIsNewStyle) R.dimen.overview_actions_top_margin
+                        else R.dimen.overview_actions_top_margin_legacy
+                    ),
                 pageSpacing = res.getDimensionPixelSize(R.dimen.overview_page_spacing),
                 actionsHeight = res.getDimensionPixelSize(R.dimen.overview_actions_height),
                 rowSpacing = res.getDimensionPixelSize(R.dimen.overview_grid_row_spacing),
