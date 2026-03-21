@@ -25,6 +25,7 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -555,6 +556,10 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
                     ? mDp.getTaskbarProfile().getStashedTaskbarHeight()
                     : mDp.getTaskbarProfile().getHeight();
             return modalTaskbarHeight + mDp.getOverviewProfile().getActionsTopMarginPx();
+        }
+
+        if (!mIsNewStyle) {
+            return getResources().getDimensionPixelSize(R.dimen.overview_actions_bottom_margin_legacy);
         }
 
         // Align to bottom of task Rect.
