@@ -200,6 +200,9 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     public static final Uri NAVBAR_IME_SPACE_URI = Settings.Secure.getUriFor(
             Settings.Secure.NAVBAR_IME_SPACE);
 
+    public static final Uri GESTURE_NAVBAR_AUTO_HIDE_URI = Settings.System.getUriFor(
+            Settings.System.GESTURE_NAVBAR_AUTO_HIDE);
+
     public static final LooperExecutor TASKBAR_UI_THREAD =
             new LooperExecutor("TASKBAR_UI_THREAD", THREAD_PRIORITY_FOREGROUND);
 
@@ -511,6 +514,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .register(NAVIGATION_BAR_HINT_URI, mOnTaskBarChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(FORCE_SHOW_NAVBAR_URI, mOnTaskBarChangeListener);
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
+                .register(GESTURE_NAVBAR_AUTO_HIDE_URI, mOnTaskBarChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(NAVIGATIONBAR_KEY_ORDER_URI, mOnTaskBarChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
@@ -1277,6 +1282,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .unregister(FORCE_SHOW_NAVBAR_URI, mOnTaskBarChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAVIGATIONBAR_KEY_ORDER_URI, mOnTaskBarChangeListener);
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
+                .unregister(GESTURE_NAVBAR_AUTO_HIDE_URI, mOnTaskBarChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAV_BAR_LAYOUT_URI, mOnTaskBarChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
