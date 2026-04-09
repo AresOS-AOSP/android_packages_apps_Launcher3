@@ -768,7 +768,7 @@ public final class Utilities {
         }
 
         // Inject theme icon drawable
-        if (ATLEAST_T && useTheme && !noWrapHintSet) {
+        if (ATLEAST_T && useTheme && result != null) {
             IconThemeController themeController =
                     ThemeManager.INSTANCE.get(context).getThemeController();
             if (themeController != null) {
