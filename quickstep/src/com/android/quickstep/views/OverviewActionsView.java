@@ -388,14 +388,20 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         if (mIsPerformingMemoryBoost) {
             return;
         }
-        
+
         View clearAllButton = findViewById(R.id.action_clear_all);
         if (clearAllButton == null) {
             return;
         }
-        
+
         mIsPerformingMemoryBoost = true;
         clearAllButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+
+        // Dismiss all tasks from recents
+        if (mCallbacks != null) {
+            mCallbacks.onClearAllTasksRequested();
+        }
+
         clearAllButton.animate()
             .scaleX(0.95f)
             .scaleY(0.95f)
@@ -404,7 +410,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
             .withEndAction(() -> {
                 UI_HELPER_EXECUTOR.execute(() -> {
                     MemoryUtils.releaseMemory();
-                    
+
                     clearAllButton.postDelayed(() -> {
                         clearAllButton.animate()
                             .scaleX(1f)
@@ -415,9 +421,9 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
                                 mIsPerformingMemoryBoost = false;
                             })
                             .start();
-                        
-                        Toast.makeText(getContext(), 
-                            R.string.memory_boost_applied, 
+
+                        Toast.makeText(getContext(),
+                            R.string.memory_boost_applied,
                             Toast.LENGTH_SHORT).show();
                     }, 500);
                 });
