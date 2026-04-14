@@ -1096,14 +1096,17 @@ public abstract class RecentsView<
     private void performMemoryBoost() {
         mClearAllButton.setMemoryBoostInProgress(true);
         mClearAllButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        
+
+        // Dismiss all tasks from recents
+        dismissAllTasks();
+
         UI_HELPER_EXECUTOR.execute(() -> {
             MemoryUtils.releaseMemory();
 
             mClearAllButton.postDelayed(() -> {
                 mClearAllButton.setMemoryBoostInProgress(false);
-                Toast.makeText(getContext(), 
-                    R.string.memory_boost_applied, 
+                Toast.makeText(getContext(),
+                    R.string.memory_boost_applied,
                     Toast.LENGTH_SHORT).show();
             }, 500);
         });
