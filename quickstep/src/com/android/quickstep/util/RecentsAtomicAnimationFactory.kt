@@ -26,9 +26,6 @@ import com.android.app.animation.Interpolators.DECELERATE
 import com.android.app.animation.Interpolators.DECELERATE_1_7
 import com.android.app.animation.Interpolators.DECELERATE_3
 import com.android.app.animation.Interpolators.EMPHASIZED_ACCELERATE
-import com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE
-import com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN
-import com.android.app.animation.Interpolators.FINAL_FRAME
 import com.android.app.animation.Interpolators.INSTANT
 import com.android.app.animation.Interpolators.LINEAR
 import com.android.app.animation.Interpolators.OVERSHOOT_0_75
@@ -67,7 +64,6 @@ import com.android.launcher3.util.NavigationMode
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import kotlin.math.max
-import kotlin.math.min
 
 open class RecentsAtomicAnimationFactory<CONTAINER, STATE_TYPE : BaseState<STATE_TYPE>>(
     protected val container: CONTAINER
@@ -145,40 +141,9 @@ CONTAINER : StatefulContainer<STATE_TYPE> {
         config.setInterpolator(ANIM_WORKSPACE_SCALE, DECELERATE)
         config.setInterpolator(ANIM_WORKSPACE_FADE, ACCELERATE)
 
-        if (DisplayController.getNavigationMode(container).hasGestures && overview.hasTaskViews()) {
-            // Overview is going offscreen, so keep it at its current scale and opacity.
-            config.setInterpolator(ANIM_OVERVIEW_SCALE, FINAL_FRAME)
-            config.setInterpolator(ANIM_OVERVIEW_FADE, FINAL_FRAME)
-            config.setInterpolator(
-                ANIM_OVERVIEW_TRANSLATE_X,
-                if (fromState == OVERVIEW_SPLIT_SELECT) EMPHASIZED_DECELERATE
-                else clampToProgress(FAST_OUT_SLOW_IN, 0f, 0.75f),
-            )
-            config.setInterpolator(ANIM_OVERVIEW_TRANSLATE_Y, FINAL_FRAME)
-
-            // Scroll RecentsView to page 0 as it goes offscreen, if necessary.
-            val numPagesToScroll = overview.nextPage - DEFAULT_PAGE
-            val scrollDuration =
-                min(MAX_PAGE_SCROLL_DURATION, (numPagesToScroll * PER_PAGE_SCROLL_DURATION))
-            config.duration = max(config.duration, scrollDuration.toLong())
-
-            // Sync scroll so that it ends before or at the same time as the taskbar animation.
-            if (container.deviceProfile.isTaskbarPresent) {
-                config.duration =
-                    min(
-                        config.duration,
-                        QuickstepTransitionManager.getTaskbarToHomeDuration(
-                                isPersistentTaskbarAndNotInDesktopMode
-                            )
-                            .toLong(),
-                    )
-            }
-            overview.snapToPage(DEFAULT_PAGE, Math.toIntExact(config.duration))
-        } else {
-            config.setInterpolator(ANIM_OVERVIEW_TRANSLATE_X, ACCELERATE_DECELERATE)
-            config.setInterpolator(ANIM_OVERVIEW_SCALE, clampToProgress(ACCELERATE, 0f, 0.9f))
-            config.setInterpolator(ANIM_OVERVIEW_FADE, DECELERATE_1_7)
-        }
+        config.setInterpolator(ANIM_OVERVIEW_TRANSLATE_X, ACCELERATE_DECELERATE)
+        config.setInterpolator(ANIM_OVERVIEW_SCALE, clampToProgress(ACCELERATE, 0f, 0.9f))
+        config.setInterpolator(ANIM_OVERVIEW_FADE, DECELERATE_1_7)
     }
 
     protected open fun getHintToNormalAnimationDuration(toState: STATE_TYPE) = -1
@@ -291,10 +256,5 @@ CONTAINER : StatefulContainer<STATE_TYPE> {
         // Scale recents takes before animating in
         private const val RECENTS_PREPARE_SCALE = 1.33f
 
-        // Constants to specify how to scroll RecentsView to the default page if it's not already
-        // there.
-        private const val DEFAULT_PAGE = 0
-        private const val PER_PAGE_SCROLL_DURATION = 150
-        private const val MAX_PAGE_SCROLL_DURATION = 750
     }
 }
