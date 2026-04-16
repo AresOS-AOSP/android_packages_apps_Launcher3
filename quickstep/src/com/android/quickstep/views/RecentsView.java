@@ -5101,6 +5101,7 @@ public abstract class RecentsView<
                         .setScroll(getScrollOffset()));
         setImportantForAccessibility(isModal() ? IMPORTANT_FOR_ACCESSIBILITY_NO
                 : IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        updateEnabledOverlays();
     }
 
     private void updatePivots() {
@@ -6839,7 +6840,9 @@ public abstract class RecentsView<
         if (enableRefactorTaskThumbnail()) {
             Set<Integer> fullyVisibleTaskIds = new HashSet<>();
             for (TaskView taskView : getTaskViews()) {
-                if (isTaskViewFullyVisible(taskView)) {
+                boolean isFullyVisible = isTaskViewFullyVisible(taskView);
+                taskView.setTaskIconsVisible(isFullyVisible);
+                if (isFullyVisible) {
                     fullyVisibleTaskIds.addAll(taskView.getTaskIdSet());
                 }
             }
@@ -6847,15 +6850,19 @@ public abstract class RecentsView<
         } else {
             TaskView focusedTaskView = getFocusedTaskView();
             for (TaskView taskView : getTaskViews()) {
+                boolean isFullyVisible = isTaskViewFullyVisible(taskView);
+                taskView.setTaskIconsVisible(isFullyVisible);
                 if (taskView == focusedTaskView) {
                     continue;
                 }
-                taskView.setOverlayEnabled(mOverlayEnabled && isTaskViewFullyVisible(taskView));
+                taskView.setOverlayEnabled(mOverlayEnabled && isFullyVisible);
             }
             // Focus task overlay should be enabled and refreshed at last
             if (focusedTaskView != null) {
+                boolean isFullyVisible = isTaskViewFullyVisible(focusedTaskView);
+                focusedTaskView.setTaskIconsVisible(isFullyVisible);
                 focusedTaskView.setOverlayEnabled(
-                        mOverlayEnabled && isTaskViewFullyVisible(focusedTaskView));
+                        mOverlayEnabled && isFullyVisible);
             }
         }
     }
@@ -7157,6 +7164,7 @@ public abstract class RecentsView<
         super.onScrollChanged(l, t, oldl, oldt);
         dispatchScrollChanged();
         updatePageOffsets();
+        updateEnabledOverlays();
     }
 
     public void doScrollScale() {
