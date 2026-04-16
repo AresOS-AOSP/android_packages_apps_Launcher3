@@ -560,6 +560,8 @@ constructor(
     private var settledProgressDismiss by
         MultiPropertyDelegate(settledProgressPropertyFactory, SettledProgress.Dismiss)
 
+    private var areTaskIconsVisible = true
+
     private val viewModel =
         if (enableRefactorTaskThumbnail()) {
             TaskViewModel(
@@ -1860,6 +1862,7 @@ constructor(
      * might require special handling.
      */
     open fun offerTouchToChildren(event: MotionEvent): Boolean {
+        if (!areTaskIconsVisible) return false
         getTaskIcons().forEach { (icon, iconTouchDelegate) ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 computeAndSetIconTouchDelegate(icon, tempCoordinates, iconTouchDelegate)
@@ -1947,13 +1950,31 @@ constructor(
      * versa). Icons fade in, and DWB banners slide in with a "shift up" animation.
      */
     private fun onSettledProgressUpdated(settledProgress: Float) {
-        getTaskIcons().forEach { (icon, _) -> icon.setContentAlpha(settledProgress) }
+        applyTaskIconVisibility(settledProgress)
         taskContainers.forEach {
             if (enableRefactorDigitalWellbeingToast() && it.taskContentView is TaskContentView) {
                 it.taskContentView.onParentAnimationProgress(settledProgress)
             } else {
                 it.digitalWellBeingToast?.bannerOffsetPercentage = 1f - settledProgress
             }
+        }
+    }
+
+    fun setTaskIconsVisible(visible: Boolean) {
+        if (areTaskIconsVisible == visible) return
+        areTaskIconsVisible = visible
+        applyTaskIconVisibility(settledProgress)
+    }
+
+    private fun applyTaskIconVisibility(settledProgress: Float) {
+        val alpha = if (areTaskIconsVisible) settledProgress else 0f
+        getTaskIcons().forEach { (icon, _) ->
+            icon.setContentAlpha(alpha)
+            val view = icon.asView()
+            view.isEnabled = areTaskIconsVisible
+            view.importantForAccessibility =
+                if (areTaskIconsVisible) View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+                else View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         }
     }
 
