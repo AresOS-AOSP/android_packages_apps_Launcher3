@@ -1,6 +1,5 @@
 package com.android.launcher3.icons;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
@@ -13,8 +12,6 @@ import com.android.launcher3.icons.pack.IconResolver;
 import com.android.launcher3.util.ComponentKey;
 
 import javax.inject.Inject;
-
-import static com.android.launcher3.icons.BaseIconFactory.CONFIG_HINT_NO_WRAP;
 
 @LauncherAppSingleton
 public class ThirdPartyIconProvider extends LauncherIconProvider {
@@ -35,7 +32,6 @@ public class ThirdPartyIconProvider extends LauncherIconProvider {
         this(context, ThemeManager.INSTANCE.get(context));
     }
 
-    @SuppressLint("WrongConstant")
     @Override
     public Drawable getIcon(ComponentInfo info, int iconDpi) {
         ComponentKey key = new ComponentKey(
@@ -48,7 +44,6 @@ public class ThirdPartyIconProvider extends LauncherIconProvider {
         if (icon == null) {
             return fallback.get();
         }
-        icon.setChangingConfigurations(icon.getChangingConfigurations() | CONFIG_HINT_NO_WRAP);
         return icon;
     }
 }
