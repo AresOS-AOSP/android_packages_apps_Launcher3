@@ -138,6 +138,10 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         labelView.setText(mLabelResId);
     }
 
+    public int getLabelResId() {
+        return mLabelResId;
+    }
+
     public void setIconAndContentDescriptionFor(ImageView view) {
         view.setImageResource(mIconResId);
         view.setContentDescription(view.getContext().getText(mLabelResId));

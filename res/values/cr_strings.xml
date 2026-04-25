@@ -536,4 +536,9 @@
     <!-- New overview style -->
     <string name="recents_overview_style_title">New overview style</string>
     <string name="recents_overview_style_summary">Use redesigned action buttons in recents</string>
+
+    <!-- App chip long press -->
+    <string name="recents_app_chip_long_press_action_title">App chip long press</string>
+    <string name="recents_app_chip_long_press_action_lock">Lock / unlock</string>
+    <string name="recents_app_chip_long_press_action_none">None</string>
 </resources>

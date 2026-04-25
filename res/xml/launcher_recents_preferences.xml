@@ -86,6 +86,16 @@
         android:key="recents_category_actions"
         android:title="@string/actions_category_title">
 
+        <ListPreference
+            android:key="pref_recents_app_chip_long_press_action"
+            android:title="@string/recents_app_chip_long_press_action_title"
+            android:summary="%s"
+            android:entries="@array/recents_app_chip_long_press_action_entries"
+            android:entryValues="@array/recents_app_chip_long_press_action_values"
+            android:defaultValue="none"
+            android:persistent="true"
+            launcher:iconSpaceReserved="false" />
+
         <SwitchPreferenceCompat
             android:key="pref_recents_screenshot"
             android:title="@string/recents_screenshot_title"
