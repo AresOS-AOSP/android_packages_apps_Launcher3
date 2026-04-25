@@ -84,4 +84,41 @@
         <item>ios</item>
         <item>oxygen</item>
     </string-array>
+
+    <!-- Recents app chip long press action -->
+    <string-array name="recents_app_chip_long_press_action_entries">
+        <item>@string/recents_app_chip_long_press_action_none</item>
+        <item>@string/app_info_drop_target_label</item>
+        <item>@string/recents_app_chip_long_press_action_lock</item>
+        <item>@string/recent_task_option_split_screen</item>
+        <item>@string/uninstall_drop_target_label</item>
+        <item>@string/recent_task_option_pin</item>
+        <item>@string/install_drop_target_label</item>
+        <item>@string/recent_task_option_freeform</item>
+        <item>@string/recent_task_option_desktop</item>
+        <item>@string/recent_task_option_external_display</item>
+        <item>@string/recent_task_option_aspect_ratio</item>
+        <item>@string/accessibility_app_usage_settings</item>
+        <item>@string/save_app_pair</item>
+        <item>@string/action_screenshot</item>
+        <item>@string/recent_task_option_kill_app</item>
+    </string-array>
+
+    <string-array name="recents_app_chip_long_press_action_values" translatable="false">
+        <item>none</item>
+        <item>app_info</item>
+        <item>lock_app</item>
+        <item>split</item>
+        <item>uninstall</item>
+        <item>pin</item>
+        <item>install</item>
+        <item>floating</item>
+        <item>desktop</item>
+        <item>external_display</item>
+        <item>aspect_ratio</item>
+        <item>usage_settings</item>
+        <item>save_app_pair</item>
+        <item>screenshot</item>
+        <item>kill</item>
+    </string-array>
 </resources>

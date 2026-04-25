@@ -55,12 +55,14 @@ import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskViewItemInfo
+import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.testing.TestLogging
 import com.android.launcher3.testing.shared.TestProtocol
 import com.android.launcher3.util.CancellableTask
@@ -1445,7 +1447,11 @@ constructor(
                 }
                 asView().setOnLongClickListener {
                     requestDisallowInterceptTouchEvent(true)
-                    showTaskMenu(this)
+                    if (enableOverviewIconMenu()) {
+                        runAppChipLongPressShortcut(this)
+                    } else {
+                        showTaskMenu(this)
+                    }
                 }
             } else {
                 setDrawable(null)
@@ -1788,6 +1794,32 @@ constructor(
             .withItemInfo(menuContainer?.itemInfo ?: itemInfo)
             .log(LauncherEvent.LAUNCHER_TASK_ICON_TAP_OR_LONGPRESS)
         return showTaskMenuWithContainer(menuContainer)
+    }
+
+    private fun runAppChipLongPressShortcut(iconView: TaskViewIcon): Boolean {
+        val recentsView = recentsView ?: return false
+        if (!recentsView.canLaunchFullscreenTask()) {
+            return showTaskMenu(iconView)
+        }
+
+        val selectedAction = LauncherPrefs.RECENTS_APP_CHIP_LONG_PRESS_ACTION.get(context)
+        if (selectedAction == APP_CHIP_LONG_PRESS_NONE) {
+            return showTaskMenu(iconView)
+        }
+
+        val menuContainer = getContainerForIconView(iconView)
+        val shortcut =
+            TaskOverlayFactory.getEnabledShortcuts(this, menuContainer).firstOrNull {
+                it.matchesAppChipLongPressAction(selectedAction)
+            }
+
+        if (shortcut == null) {
+            Toast.makeText(context, R.string.shortcut_not_available, Toast.LENGTH_SHORT).show()
+            return true
+        }
+
+        shortcut.onClick(iconView.asView())
+        return true
     }
 
     private fun closeTaskMenu(): Boolean {
@@ -2202,6 +2234,50 @@ constructor(
 
     companion object {
         private const val TAG = "TaskView"
+        private const val APP_CHIP_LONG_PRESS_APP_INFO = "app_info"
+        private const val APP_CHIP_LONG_PRESS_LOCK_APP = "lock_app"
+        private const val APP_CHIP_LONG_PRESS_SPLIT = "split"
+        private const val APP_CHIP_LONG_PRESS_UNINSTALL = "uninstall"
+        private const val APP_CHIP_LONG_PRESS_PIN = "pin"
+        private const val APP_CHIP_LONG_PRESS_INSTALL = "install"
+        private const val APP_CHIP_LONG_PRESS_FLOATING = "floating"
+        private const val APP_CHIP_LONG_PRESS_DESKTOP = "desktop"
+        private const val APP_CHIP_LONG_PRESS_EXTERNAL_DISPLAY = "external_display"
+        private const val APP_CHIP_LONG_PRESS_ASPECT_RATIO = "aspect_ratio"
+        private const val APP_CHIP_LONG_PRESS_USAGE_SETTINGS = "usage_settings"
+        private const val APP_CHIP_LONG_PRESS_SAVE_APP_PAIR = "save_app_pair"
+        private const val APP_CHIP_LONG_PRESS_SCREENSHOT = "screenshot"
+        private const val APP_CHIP_LONG_PRESS_KILL = "kill"
+        private const val APP_CHIP_LONG_PRESS_NONE = "none"
+
+        private fun SystemShortcut<*>.matchesAppChipLongPressAction(action: String): Boolean {
+            val labelResId = this.labelResId
+            return when (action) {
+                APP_CHIP_LONG_PRESS_APP_INFO -> labelResId == R.string.app_info_drop_target_label
+                APP_CHIP_LONG_PRESS_LOCK_APP ->
+                    labelResId == R.string.lock_task_in_recents ||
+                        labelResId == R.string.unlock_task_from_recents
+                APP_CHIP_LONG_PRESS_SPLIT ->
+                    labelResId == R.string.recent_task_option_split_screen
+                APP_CHIP_LONG_PRESS_UNINSTALL ->
+                    labelResId == R.string.uninstall_drop_target_label
+                APP_CHIP_LONG_PRESS_PIN -> labelResId == R.string.recent_task_option_pin
+                APP_CHIP_LONG_PRESS_INSTALL -> labelResId == R.string.install_drop_target_label
+                APP_CHIP_LONG_PRESS_FLOATING ->
+                    labelResId == R.string.recent_task_option_freeform
+                APP_CHIP_LONG_PRESS_DESKTOP -> labelResId == R.string.recent_task_option_desktop
+                APP_CHIP_LONG_PRESS_EXTERNAL_DISPLAY ->
+                    labelResId == R.string.recent_task_option_external_display
+                APP_CHIP_LONG_PRESS_ASPECT_RATIO ->
+                    labelResId == R.string.recent_task_option_aspect_ratio
+                APP_CHIP_LONG_PRESS_USAGE_SETTINGS ->
+                    labelResId == R.id.action_remote_action_shortcut
+                APP_CHIP_LONG_PRESS_SAVE_APP_PAIR -> labelResId == R.string.save_app_pair
+                APP_CHIP_LONG_PRESS_SCREENSHOT -> labelResId == R.string.action_screenshot
+                APP_CHIP_LONG_PRESS_KILL -> labelResId == R.string.recent_task_option_kill_app
+                else -> false
+            }
+        }
 
         private enum class Alpha {
             Stable,
