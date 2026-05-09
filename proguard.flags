@@ -60,7 +60,3 @@
 -keep class com.android.launcher3.data.** {
   *;
 }
-
--keep class com.android.launcher3.lineage.trust.** {
-  *;
-}
