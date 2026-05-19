@@ -28,11 +28,15 @@ import static com.android.launcher3.views.FloatingIconViewCompanion.setPropertie
 
 import android.animation.Animator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.HardwareRenderer;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.RenderNode;
 import android.graphics.drawable.AdaptiveIconDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.CancellationSignal;
 import android.util.AttributeSet;
@@ -579,6 +583,27 @@ public class FloatingIconView extends FrameLayout implements
                         ? btvIcon.getConstantState().newDrawable()
                         : null;
             }
+        } else if (v instanceof FolderIcon) {
+            FolderIcon folderIcon = (FolderIcon) v;
+            Rect r = new Rect();
+            folderIcon.getPreviewBounds(r);
+
+            RenderNode renderNode = new RenderNode("FolderIconSnapshot");
+            renderNode.setPosition(0, 0, r.width(), r.height());
+            Canvas canvas = renderNode.beginRecording();
+            canvas.translate(-r.left, -r.top);
+            if (folderIcon.usesBlurredBackground()) {
+                folderIcon.getPreviewItemManager().recomputePreviewDrawingParams();
+                folderIcon.getPreviewItemManager().draw(canvas);
+                folderIcon.drawDot(canvas);
+            } else {
+                folderIcon.draw(canvas);
+            }
+            renderNode.endRecording();
+            Bitmap b = HardwareRenderer.createHardwareBitmap(renderNode, r.width(), r.height());
+
+            btvIcon = new BitmapDrawable(l.getResources(), b);
+            btvDrawableSupplier = () -> btvIcon.getConstantState().newDrawable();
         } else {
             btvIcon = null;
             btvDrawableSupplier = null;

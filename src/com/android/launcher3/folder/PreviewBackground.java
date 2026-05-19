@@ -49,6 +49,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.celllayout.DelegatedCellDrawing;
+import com.android.launcher3.graphics.PathWrapper;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.views.ActivityContext;
@@ -73,7 +74,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
     private RadialGradient mShadowShader = null;
 
     private final Matrix mShaderMatrix = new Matrix();
-    private final Path mPath = new Path();
+    private final PathWrapper mPath = new PathWrapper();
 
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -279,7 +280,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
         } else {
             saveCount = canvas.save();
-            canvas.clipPath(getClipPath(), Region.Op.DIFFERENCE);
+            canvas.clipPath(getClipPath().getPath(), Region.Op.DIFFERENCE);
         }
 
         mShaderMatrix.setScale(shadowRadius, shadowRadius);
@@ -365,7 +366,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
         mScale = originalScale;
     }
 
-    public Path getClipPath() {
+    public PathWrapper getClipPath() {
         mPath.reset();
         float radius = getScaledRadius();
         if (!Flags.enableLauncherIconShapes()) {

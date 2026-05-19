@@ -41,7 +41,6 @@ import android.appwidget.AppWidgetHostView;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Insets;
-import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -74,6 +73,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.android.axion.blur.AxBlurBackgroundRenderer;
+import com.android.axion.blur.AxBlurColors;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.Alarm;
 import com.android.launcher3.CellLayout;
@@ -83,6 +84,7 @@ import com.android.launcher3.DropTarget;
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.OnAlarmListener;
 import com.android.launcher3.R;
 import com.android.launcher3.ShortcutAndWidgetContainer;
@@ -95,6 +97,7 @@ import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.dragndrop.DragController.DragListener;
 import com.android.launcher3.dragndrop.DragOptions;
+import com.android.launcher3.graphics.PathWrapper;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.logger.LauncherAtom.FromState;
@@ -223,7 +226,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     @Thunk
     int mTargetRank, mPrevTargetRank, mEmptyCellRank;
 
-    private Path mClipPath;
+    private PathWrapper mClipPath;
 
     @ViewDebug.ExportedProperty(category = "launcher",
             mapping = {
@@ -266,6 +269,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private KeyboardInsetAnimationCallback mKeyboardInsetAnimationCallback;
 
     private final @NonNull GradientDrawable mBackground;
+    private final AxBlurBackgroundRenderer mBlurBackgroundRenderer;
+    private final int mFolderBlurOverlayColor;
 
     /**
      * Used to inflate the Workspace from XML.
@@ -287,9 +292,15 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         // click).
         setFocusableInTouchMode(true);
 
-        mBackground = (GradientDrawable) Objects.requireNonNull(
+        GradientDrawable background = (GradientDrawable) Objects.requireNonNull(
                 ResourcesCompat.getDrawable(getResources(),
                         R.drawable.round_rect_folder, getContext().getTheme()));
+        mFolderBlurOverlayColor = AxBlurColors.surfaceContainerTint(getContext());
+        mBlurBackgroundRenderer = AxBlurBackgroundRenderer.launcher(
+                this, getResources().getDimension(R.dimen.folder_blur_radius));
+        mBlurBackgroundRenderer.setEnabled(LauncherPrefs.BLUR_DEPTH.get(getContext()) > 0);
+        mBackground = mBlurBackgroundRenderer.createBackgroundDrawable(
+                background, mFolderBlurOverlayColor);
         mBackground.setCallback(this);
     }
 
@@ -410,7 +421,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     @Override
     protected boolean verifyDrawable(@NonNull Drawable who) {
-        return super.verifyDrawable(who) || (who == mBackground);
+        return super.verifyDrawable(who) || (who == mBackground)
+                || mBlurBackgroundRenderer.verifyDrawable(who);
     }
 
     void callBeginDragShared(View v, DragOptions options) {
@@ -543,12 +555,14 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         requestFocus();
         super.onAttachedToWindow();
         mFolderName.addOnFocusChangeListener(this);
+        mBlurBackgroundRenderer.onAttachedToWindow();
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         mFolderName.removeOnFocusChangeListener(this);
+        mBlurBackgroundRenderer.onDetachedFromWindow();
     }
 
     @Override
@@ -1832,7 +1846,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
      * rounded rect.
      */
     @Override
-    public void setClipPath(Path clipPath) {
+    public void setClipPath(PathWrapper clipPath) {
         mClipPath = clipPath;
         invalidate();
     }
@@ -1841,13 +1855,38 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     protected void dispatchDraw(Canvas canvas) {
         if (mClipPath != null) {
             int count = canvas.save();
-            canvas.clipPath(mClipPath);
-            mBackground.draw(canvas);
+            canvas.clipPath(mClipPath.getPath());
+            boolean drewBlur = mBlurBackgroundRenderer.draw(
+                    canvas,
+                    mClipPath.getBounds(),
+                    mClipPath.getPath(),
+                    mClipPath.getCornerRadius(),
+                    mFolderBlurOverlayColor);
+            drawBackground(canvas, drewBlur);
+            if (!mIsAnimatingClosed) {
+                super.dispatchDraw(canvas);
+            }
             canvas.restoreToCount(count);
-            super.dispatchDraw(canvas);
+            if (mIsAnimatingClosed) {
+                super.dispatchDraw(canvas);
+            }
         } else {
-            mBackground.draw(canvas);
+            boolean drewBlur = mBlurBackgroundRenderer.draw(
+                    canvas,
+                    0,
+                    0,
+                    getWidth(),
+                    getHeight(),
+                    mBackground.getCornerRadius(),
+                    mFolderBlurOverlayColor);
+            drawBackground(canvas, drewBlur);
             super.dispatchDraw(canvas);
+        }
+    }
+
+    private void drawBackground(Canvas canvas, boolean drewBlur) {
+        if (!drewBlur && !mBlurBackgroundRenderer.isCrossWindowBlurActive()) {
+            mBackground.draw(canvas);
         }
     }
 
