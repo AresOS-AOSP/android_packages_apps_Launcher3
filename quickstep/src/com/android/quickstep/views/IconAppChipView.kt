@@ -182,6 +182,11 @@ constructor(
                         BorderAnimator.DEFAULT_BORDER_COLOR,
                     ),
         )
+    private val startCollapsedMarqueeRunnable = Runnable {
+        if (status == AppChipStatus.Collapsed && isAttachedToWindow) {
+            enableMarquee(true)
+        }
+    }
 
     private var focusAnimator: AnimatorSet? = null
 
@@ -234,6 +239,11 @@ constructor(
         focusBorderAnimator.drawBorder(canvas)
     }
 
+    override fun onDetachedFromWindow() {
+        removeCallbacks(startCollapsedMarqueeRunnable)
+        super.onDetachedFromWindow()
+    }
+
     override fun onFinishInflate() {
         super.onFinishInflate()
         iconView = findViewById(R.id.icon_view)
@@ -247,6 +257,7 @@ constructor(
     override fun setText(text: CharSequence?) {
         if (TextUtils.equals(text, appTitle?.text)) return
         appTitle?.text = text
+        updateCollapsedMarqueeState()
     }
 
     override fun getDrawable(): Drawable? = iconView?.drawable
@@ -351,10 +362,33 @@ constructor(
     private fun enableMarquee(isEnabled: Boolean) {
         // Marquee should not be enabled when is running test harness.
         val isMarqueeEnabled = isEnabled && !Utilities.isRunningInTestHarness()
+        val desiredEllipsize = if (isMarqueeEnabled) TruncateAt.MARQUEE else null
+        val desiredRepeatLimit =
+            if (isMarqueeEnabled && status == AppChipStatus.Collapsed) -1 else 1
         appTitle?.let {
-            it.ellipsize = if (isMarqueeEnabled) TruncateAt.MARQUEE else null
-            it.isSelected = isMarqueeEnabled
+            if (it.ellipsize != desiredEllipsize) {
+                it.ellipsize = desiredEllipsize
+            }
+            if (it.isSelected != isMarqueeEnabled) {
+                it.isSelected = isMarqueeEnabled
+            }
+            if (it.marqueeRepeatLimit != desiredRepeatLimit) {
+                it.marqueeRepeatLimit = desiredRepeatLimit
+            }
         }
+    }
+
+    private fun updateCollapsedMarqueeState() {
+        removeCallbacks(startCollapsedMarqueeRunnable)
+        if (status != AppChipStatus.Collapsed) {
+            enableMarquee(false)
+            return
+        }
+        if (!isLaidOut || isLayoutRequested) {
+            post(startCollapsedMarqueeRunnable)
+            return
+        }
+        enableMarquee(true)
     }
 
     /**
@@ -533,7 +567,10 @@ constructor(
             onEnd = {
                 if (isFocused) animateFocusBorder(isAppearing = true)
                 when (status) {
-                    AppChipStatus.Collapsed -> updateChipSize()
+                    AppChipStatus.Collapsed -> {
+                        updateChipSize()
+                        updateCollapsedMarqueeState()
+                    }
                     // Enable marquee after chip is fully expanded
                     AppChipStatus.Expanded -> enableMarquee(true)
                 }
