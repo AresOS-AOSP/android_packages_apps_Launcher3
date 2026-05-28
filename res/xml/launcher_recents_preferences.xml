@@ -58,6 +58,14 @@
             launcher:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
+            android:key="pref_recents_locked_tasks_prevent_dismiss"
+            android:title="@string/recents_locked_tasks_prevent_dismiss_title"
+            android:summary="@string/recents_locked_tasks_prevent_dismiss_summary"
+            android:defaultValue="false"
+            android:persistent="true"
+            launcher:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
             android:key="pref_recents_meminfo"
             android:title="@string/recents_meminfo_title"
             android:defaultValue="false"
