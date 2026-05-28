@@ -4742,6 +4742,10 @@ public abstract class RecentsView<
             Log.d(TAG, "dismissTask: " + taskId + ",  no associated TaskView");
             return;
         }
+        if (isTaskViewProtectedFromManualDismiss(taskView)) {
+            Log.d(TAG, "dismissTask: " + taskId + ", protected locked task ignored");
+            return;
+        }
         Log.d(TAG, "dismissTask: " + taskId);
 
         if (enableDesktopExplodedView() && taskView instanceof  DesktopTaskView desktopTaskView) {
@@ -4757,6 +4761,9 @@ public abstract class RecentsView<
 
     /** Dismisses the entire [taskView]. */
     public void dismissTaskView(TaskView taskView, boolean animateTaskView, boolean removeTask) {
+        if (isTaskViewProtectedFromManualDismiss(taskView)) {
+            return;
+        }
         if (enableExpressiveDismissTaskMotion() && (!showAsGrid() || enableGridOnlyOverview())) {
             mDismissUtils.createTaskDismissSpringAnimation(taskView, removeTask,
                     false /* isSplitSelection */);
@@ -5005,7 +5012,13 @@ public abstract class RecentsView<
      * returns true.
      */
     public boolean canRemoveTaskView(TaskView taskView) {
-        return mUtils.canRemoveTaskView(taskView);
+        return mUtils.canRemoveTaskView(taskView) && !isTaskViewProtectedFromManualDismiss(taskView);
+    }
+
+    public boolean isTaskViewProtectedFromManualDismiss(@Nullable TaskView taskView) {
+        if (taskView == null || !taskView.isLocked()) return false;
+        return LauncherPrefs.get(mContext)
+                .get(LauncherPrefs.RECENTS_LOCKED_TASKS_PREVENT_DISMISS);
     }
 
     @Override

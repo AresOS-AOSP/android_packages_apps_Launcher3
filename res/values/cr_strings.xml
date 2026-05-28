@@ -500,6 +500,8 @@
     <string name="unlock_app_release_to_confirm">Release to unlock</string>
     <string name="lock_task_in_recents">Lock</string>
     <string name="unlock_task_from_recents">Unlock</string>
+    <string name="recents_locked_tasks_prevent_dismiss_title">Prevent dismissing locked apps</string>
+    <string name="recents_locked_tasks_prevent_dismiss_summary">Block swiping locked apps away from recents</string>
 
     <!-- New overview style -->
     <string name="recents_overview_style_title">New overview style</string>
