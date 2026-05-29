@@ -503,6 +503,8 @@
     <string name="action_unlock">Unlock app in recents</string>
     <string name="lock_app">App locked in recents</string>
     <string name="unlock_app">App unlocked in recents</string>
+    <string name="lock_task_in_recents">Lock</string>
+    <string name="unlock_task_from_recents">Unlock</string>
 
     <!-- Recents style -->
     <string name="recents_scroll_vibrate_title">Scroll vibration</string>

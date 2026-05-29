@@ -43,7 +43,6 @@ import android.view.WindowInsets;
 import android.view.WindowManagerGlobal;
 import android.window.DesktopExperienceFlags;
 import android.window.SplashScreen;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -599,10 +598,18 @@ public interface TaskShortcutFactory {
         private static final String TAG = "LockAppSystemShortcut";
         private final Task mTask;
         private final String mPackageName;
-        private Context mContext;
+        private final Context mContext;
 
-        public LockAppSystemShortcut(Context context, RecentsViewContainer target, TaskContainer taskContainer, String packageName) {
-            super(R.drawable.recents_locked, R.string.action_lock,
+        public LockAppSystemShortcut(Context context, RecentsViewContainer target,
+                TaskContainer taskContainer, String packageName) {
+            this(context, target, taskContainer, packageName,
+                    LockedTaskManager.getInstance(context).isPackageLocked(packageName));
+        }
+
+        private LockAppSystemShortcut(Context context, RecentsViewContainer target,
+                TaskContainer taskContainer, String packageName, boolean isLocked) {
+            super(isLocked ? R.drawable.ic_protected_unlocked : R.drawable.ic_protected_locked,
+                    isLocked ? R.string.unlock_task_from_recents : R.string.lock_task_in_recents,
                     target, taskContainer.getItemInfo(), taskContainer.getTaskView());
             mTask = taskContainer.getTask();
             mPackageName = packageName;
@@ -613,12 +620,9 @@ public interface TaskShortcutFactory {
         public void onClick(View view) {
             if (mPackageName != null && mTask != null) {
                 LockedTaskManager ltm = LockedTaskManager.getInstance(mContext);
-                boolean wasLocked = ltm.isPackageLocked(mPackageName);
-                ltm.setPackageLocked(mPackageName, !wasLocked);
+                ltm.setPackageLocked(mPackageName, !ltm.isPackageLocked(mPackageName));
                 ((TaskView) mOriginalView).updateLockState(mPackageName);
-                Toast.makeText(mContext,
-                        wasLocked ? R.string.unlock_app : R.string.lock_app,
-                        Toast.LENGTH_SHORT).show();
+                dismissTaskMenuView();
             }
         }
     }
