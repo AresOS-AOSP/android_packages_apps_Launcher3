@@ -34,4 +34,8 @@
     <dimen name="overview_actions_height_legacy">48dp</dimen>
     <dimen name="overview_actions_top_margin_legacy">24dp</dimen>
     <dimen name="overview_actions_bottom_margin_legacy">134dp</dimen>
+
+    <!-- Locked tasks -->
+    <dimen name="task_thumbnail_icon_menu_lock_icon_size">18dp</dimen>
+    <dimen name="task_thumbnail_icon_menu_lock_icon_padding">6dp</dimen>
 </resources>
