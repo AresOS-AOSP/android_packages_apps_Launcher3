@@ -22,9 +22,11 @@ object MemoryUtils {
     private const val TAG = "MemoryUtils"
 
     @JvmStatic
-    fun releaseMemory() {
+    @JvmOverloads
+    fun releaseMemory(protectedPackages: List<String> = emptyList()) {
         try {
-            android.app.ActivityManager.getService().releaseMemory(606, 60, false, false)
+            android.app.ActivityManager.getService()
+                .releaseMemory(606, 60, false, false, protectedPackages)
             Log.d(TAG, "Memory release triggered successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to release memory", e)

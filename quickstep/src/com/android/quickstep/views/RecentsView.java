@@ -1097,11 +1097,15 @@ public abstract class RecentsView<
         mClearAllButton.setMemoryBoostInProgress(true);
         mClearAllButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
 
+        // Locked apps are spared from the memory release while their tasks are
+        // protected from being dismissed.
+        final List<String> protectedPackages = getProtectedFromDismissPackages();
+
         // Dismiss all tasks from recents
         dismissAllTasks();
 
         UI_HELPER_EXECUTOR.execute(() -> {
-            MemoryUtils.releaseMemory();
+            MemoryUtils.releaseMemory(protectedPackages);
 
             mClearAllButton.postDelayed(() -> {
                 mClearAllButton.setMemoryBoostInProgress(false);
@@ -5053,6 +5057,23 @@ public abstract class RecentsView<
         if (taskView == null || !taskView.isLocked()) return false;
         return LauncherPrefs.get(mContext)
                 .get(LauncherPrefs.RECENTS_LOCKED_TASKS_PREVENT_DISMISS);
+    }
+
+    /** Packages of locked tasks that should be spared when dismiss protection is on. */
+    private List<String> getProtectedFromDismissPackages() {
+        if (!LauncherPrefs.get(mContext).get(LauncherPrefs.RECENTS_LOCKED_TASKS_PREVENT_DISMISS)) {
+            return Collections.emptyList();
+        }
+        List<String> packages = new ArrayList<>();
+        for (TaskView taskView : getTaskViews()) {
+            if (!taskView.isLocked()) continue;
+            Task task = taskView.getFirstTask();
+            String pkg = task != null ? task.key.getPackageName() : null;
+            if (pkg != null && !packages.contains(pkg)) {
+                packages.add(pkg);
+            }
+        }
+        return packages;
     }
 
     @Override
