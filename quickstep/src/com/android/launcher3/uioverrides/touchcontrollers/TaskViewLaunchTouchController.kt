@@ -62,6 +62,7 @@ CONTAINER : RecentsViewContainer {
     private var canInterceptTouch = false
     private var wasLockedBeforeDrag = false
     private var hasLockThresholdHapticRun = false
+    private var isLockPillShown = false
 
     private fun canTaskLockTaskView(taskView: TaskView?) =
         taskView != null &&
@@ -175,15 +176,17 @@ CONTAINER : RecentsViewContainer {
         hasLockThresholdHapticRun = false
 
         showLockPill(wasLockedBeforeDrag)
+        isLockPillShown = true
     }
 
     override fun onDrag(displacement: Float): Boolean {
         val taskBeingDragged = taskBeingDragged ?: return false
-        val boundedDisplacement = boundToRange(
-            abs(displacement),
-            0f,
-            abs(maxLockDisplacement)
-        ) * verticalFactor
+        // Signed progress along the down direction. Negative when the finger has
+        // moved back above the touch start so the task can follow the finger up
+        // and the pill can cancel.
+        val downProgress = displacement * verticalFactor
+        val clampedProgress = boundToRange(downProgress, 0f, abs(maxLockDisplacement))
+        val boundedDisplacement = clampedProgress * verticalFactor
         taskBeingDragged.secondaryDismissTranslationProperty.setValue(
             taskBeingDragged, boundedDisplacement
         )
@@ -194,7 +197,21 @@ CONTAINER : RecentsViewContainer {
             }
             recentsView.redrawLiveTile()
         }
-        playLockThresholdHaptic(displacement)
+        val cancelDistance = abs(LOCK_CANCEL_FRACTION * maxLockDisplacement)
+        if (isLockPillShown && downProgress < cancelDistance) {
+            hideLockPill()
+            isLockPillShown = false
+            hasLockThresholdHapticRun = false
+        } else if (!isLockPillShown && downProgress >= cancelDistance) {
+            showLockPill(wasLockedBeforeDrag)
+            isLockPillShown = true
+        }
+        if (isLockPillShown) {
+            val beyondThreshold =
+                downProgress > abs(LOCK_THRESHOLD_FRACTION * maxLockDisplacement)
+            container.actionsView?.setLockPillAtThreshold(beyondThreshold)
+            playLockThresholdHaptic(downProgress)
+        }
         return true
     }
 
@@ -221,7 +238,7 @@ CONTAINER : RecentsViewContainer {
         val isBeyondLockThreshold =
             abs(currentDisplacement) > abs(LOCK_THRESHOLD_FRACTION * maxLockDisplacement)
 
-        if (isBeyondLockThreshold) {
+        if (isBeyondLockThreshold && isLockPillShown) {
             val packageName = taskBeingDragged.firstTask?.key?.packageName
             if (packageName != null) {
                 LockedTaskManager.getInstance(container).setPackageLocked(
@@ -260,11 +277,22 @@ CONTAINER : RecentsViewContainer {
     private fun showLockPill(isCurrentlyLocked: Boolean) {
         val actionsView = container.actionsView ?: return
         actionsView.showLockPill(isCurrentlyLocked)
+        fadeMemInfo(0f)
     }
 
     private fun hideLockPill() {
         val actionsView = container.actionsView ?: return
         actionsView.hideLockPill()
+        fadeMemInfo(1f)
+    }
+
+    private fun fadeMemInfo(alpha: Float) {
+        container.memInfoView?.animate()?.apply {
+            cancel()
+            alpha(alpha)
+            duration = LOCK_PILL_FADE_MS
+            start()
+        }
     }
 
     private fun clearState() {
@@ -281,6 +309,7 @@ CONTAINER : RecentsViewContainer {
             it.translationZ = 0f
         }
         hideLockPill()
+        isLockPillShown = false
         taskBeingDragged = null
     }
 
@@ -289,5 +318,7 @@ CONTAINER : RecentsViewContainer {
         private const val LOCK_DISPLACEMENT_FRACTION = 0.4f
         private const val LOCK_THRESHOLD_FRACTION = 0.5f
         private const val LOCK_THRESHOLD_HAPTIC_RANGE = 10f
+        private const val LOCK_CANCEL_FRACTION = 0.05f
+        private const val LOCK_PILL_FADE_MS = 180L
     }
 }

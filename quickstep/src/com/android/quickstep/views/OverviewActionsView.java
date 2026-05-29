@@ -29,8 +29,10 @@ import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.PathInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -192,7 +194,14 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
     private View mLockPillContainer;
     private TextView mLockPillText;
+    private ImageView mLockPillIcon;
     private boolean mLockPillShowing = false;
+    private boolean mLockPillAtThreshold = false;
+    private boolean mLockPillInitialLocked = false;
+
+    private static final long LOCK_PILL_FADE_DURATION = 180L;
+    private static final PathInterpolator LOCK_PILL_INTERP =
+            new PathInterpolator(0.2f, 0f, 0f, 1f);
 
     public OverviewActionsView(Context context) {
         this(context, null);
@@ -272,25 +281,60 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         }
         mLockPillContainer = findViewById(R.id.lock_pill_container);
         mLockPillText = findViewById(R.id.lock_pill_text);
+        mLockPillIcon = findViewById(R.id.lock_pill_icon);
         updateVisibilities();
     }
 
     public void showLockPill(boolean isCurrentlyLocked) {
         if (mLockPillContainer == null || mLockPillShowing) return;
         mLockPillShowing = true;
-        mLockPillText.setText(isCurrentlyLocked ? R.string.unlock_app : R.string.lock_app);
+        mLockPillAtThreshold = false;
+        mLockPillInitialLocked = isCurrentlyLocked;
+        mLockPillIcon.setImageResource(isCurrentlyLocked
+                ? R.drawable.ic_protected_unlocked
+                : R.drawable.ic_protected_locked);
+        applyLockPillState();
         mLockPillContainer.setAlpha(0f);
+        mLockPillContainer.setScaleX(0.85f);
+        mLockPillContainer.setScaleY(0.85f);
         mLockPillContainer.setVisibility(VISIBLE);
-        mLockPillContainer.animate().alpha(1f).setDuration(150).start();
-        mActionButtons.animate().alpha(0f).setDuration(150).start();
+        mLockPillContainer.animate()
+                .alpha(1f).scaleX(1f).scaleY(1f)
+                .setInterpolator(LOCK_PILL_INTERP)
+                .setDuration(LOCK_PILL_FADE_DURATION).start();
+        mActionButtons.animate().alpha(0f).setDuration(LOCK_PILL_FADE_DURATION).start();
+    }
+
+    public void setLockPillAtThreshold(boolean atThreshold) {
+        if (mLockPillContainer == null || !mLockPillShowing) return;
+        if (mLockPillAtThreshold == atThreshold) return;
+        mLockPillAtThreshold = atThreshold;
+        applyLockPillState();
+    }
+
+    private void applyLockPillState() {
+        int textRes;
+        if (mLockPillAtThreshold) {
+            textRes = mLockPillInitialLocked
+                    ? R.string.unlock_app_release_to_confirm
+                    : R.string.lock_app_release_to_confirm;
+        } else {
+            textRes = mLockPillInitialLocked
+                    ? R.string.unlock_app_prompt
+                    : R.string.lock_app_prompt;
+        }
+        mLockPillText.setText(textRes);
     }
 
     public void hideLockPill() {
         if (mLockPillContainer == null || !mLockPillShowing) return;
         mLockPillShowing = false;
-        mLockPillContainer.animate().alpha(0f).setDuration(150).withEndAction(() ->
-                mLockPillContainer.setVisibility(GONE)).start();
-        mActionButtons.animate().alpha(1f).setDuration(150).start();
+        mLockPillContainer.animate()
+                .alpha(0f)
+                .setInterpolator(LOCK_PILL_INTERP)
+                .setDuration(LOCK_PILL_FADE_DURATION).withEndAction(() ->
+                        mLockPillContainer.setVisibility(GONE)).start();
+        mActionButtons.animate().alpha(1f).setDuration(LOCK_PILL_FADE_DURATION).start();
     }
 
     private void updateVisibilities() {

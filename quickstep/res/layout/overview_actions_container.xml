@@ -139,36 +139,40 @@
     <FrameLayout
         android:id="@+id/lock_pill_container"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="96dp"
         android:visibility="gone"
-        android:background="@drawable/bg_overview_actions_button">
+        android:elevation="4dp"
+        android:background="@drawable/bg_overview_actions_button"
+        android:backgroundTint="@color/materialColorSecondaryContainer">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingStart="20dp"
+            android:paddingStart="18dp"
             android:paddingEnd="20dp">
 
             <ImageView
                 android:id="@+id/lock_pill_icon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/recents_locked"
-                android:tint="?android:attr/colorAccent"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_protected_locked"
+                android:tint="@color/materialColorOnSecondaryContainer"
                 android:importantForAccessibility="no" />
 
             <TextView
                 android:id="@+id/lock_pill_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/lock_app"
-                android:textColor="?android:attr/colorAccent"
-                android:textSize="14sp" />
+                android:layout_marginStart="10dp"
+                android:text="@string/lock_app_prompt"
+                android:textColor="@color/materialColorOnSecondaryContainer"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.01" />
 
         </LinearLayout>
 
