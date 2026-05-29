@@ -490,9 +490,10 @@
     <string name="recents_style_oxygen">OxygenOS style</string>
 
     <!-- Lock -->
-    <string name="action_lock">Lock/Unlock app</string>
-    <string name="unlock_app">Unlocked app in recents</string>
-    <string name="lock_app">Locked app in recents</string>
+    <string name="action_lock">Lock app in recents</string>
+    <string name="action_unlock">Unlock app in recents</string>
+    <string name="lock_app">App locked in recents</string>
+    <string name="unlock_app">App unlocked in recents</string>
 
     <!-- New overview style -->
     <string name="recents_overview_style_title">New overview style</string>

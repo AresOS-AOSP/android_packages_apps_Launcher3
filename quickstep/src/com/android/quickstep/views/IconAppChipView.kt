@@ -25,17 +25,19 @@ import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.text.TextUtils
 import android.text.TextUtils.TruncateAt
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewAnimationUtils
 import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.animation.addListener
+import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import com.android.app.animation.Interpolators
 import com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY
@@ -65,6 +67,7 @@ constructor(
     private var iconView: IconView? = null
     private var iconArrowView: ImageView? = null
     private var menuAnchorView: View? = null
+    private var appTitleContainer: LinearLayout? = null
 
     // Two textview so we can ellipsize the collapsed view and crossfade on expand to the full name.
     private var appTitle: TextView? = null
@@ -112,6 +115,8 @@ constructor(
         resources.getDimension(R.dimen.task_thumbnail_icon_menu_elevation)
     private val arrowSize =
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_arrow_size)
+    private val lockIconSize =
+        resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_lock_icon_size)
     private val iconViewDrawableExpandedSize =
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_app_icon_expanded_size)
     private val focusBorderWidth =
@@ -119,6 +124,11 @@ constructor(
     private val cornerRadius = resources.getDimensionPixelSize(R.dimen.app_chip_round_corner_radius)
 
     private var animator: AnimatorSet? = null
+    private val defaultBackgroundColor = context.getColor(R.color.materialColorSurfaceBright)
+    private val lockedBackgroundColor = context.getColor(R.color.materialColorSecondaryContainer)
+    private val defaultLabelColor = context.getColor(R.color.materialColorOnSurface)
+    private val lockedLabelColor = context.getColor(R.color.materialColorOnSecondaryContainer)
+    private var isLockedInRecents = false
 
     private val multiValueAlpha: MultiValueAlpha =
         MultiValueAlpha(this, NUM_ALPHA_CHANNELS).apply { setUpdateVisibility(true) }
@@ -128,8 +138,6 @@ constructor(
 
     private val viewTranslationY: MultiPropertyFactory<View> =
         MultiPropertyFactory(this, VIEW_TRANSLATE_Y, INDEX_COUNT_TRANSLATION, SUM_AGGREGATOR)
-
-    private var isShowingLockIcon = false
 
     // Width showing only the app icon and arrow. Max width should not be set to less than
     // this.
@@ -229,13 +237,15 @@ constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         iconView = findViewById(R.id.icon_view)
+        appTitleContainer = findViewById(R.id.icon_title_container)
         appTitle = findViewById(R.id.icon_title)
         iconArrowView = findViewById(R.id.icon_arrow)
         menuAnchorView = findViewById(R.id.icon_view_menu_anchor)
+        applyLockedVisualState()
     }
 
     override fun setText(text: CharSequence?) {
-        if (text == appTitle?.text) return
+        if (TextUtils.equals(text, appTitle?.text)) return
         appTitle?.text = text
     }
 
@@ -311,14 +321,14 @@ constructor(
         iconView!!.layoutParams = iconParams
         iconView!!.setDrawableSize(appIconSize, appIconSize)
 
-        // Layout Params for the collapsed Icon Text View
+        // Layout Params for the collapsed Icon Text Container
         val textMarginStart =
             iconMarginStartRelativeToParent + appIconSize + appNameHorizontalMarginCollapsed
-        val iconTextCollapsedParams = appTitle!!.layoutParams as LayoutParams
-        orientationHandler.setIconAppChipChildrenParams(iconTextCollapsedParams, textMarginStart)
-        iconTextCollapsedParams.width =
-            calculateCollapsedTextWidth(collapsedBackgroundBounds.width())
-        appTitle?.layoutParams = iconTextCollapsedParams
+        val titleContainerParams = appTitleContainer!!.layoutParams as LayoutParams
+        orientationHandler.setIconAppChipChildrenParams(titleContainerParams, textMarginStart)
+        titleContainerParams.width = calculateCollapsedTextWidth(collapsedBackgroundBounds.width())
+        appTitleContainer!!.layoutParams = titleContainerParams
+        appTitle?.updateLayoutParams { width = titleContainerParams.width }
 
         // Layout Params for the Icon Arrow View
         val iconArrowParams = iconArrowView!!.layoutParams as LayoutParams
@@ -438,6 +448,9 @@ constructor(
         cancelInProgressAnimations()
         val collapsedBackgroundBounds = getCollapsedBackgroundLtrBounds()
         val expandedBackgroundBounds = getExpandedBackgroundLtrBounds()
+        val collapsedLabelWidth = calculateCollapsedTextWidth(collapsedBackgroundBounds.width())
+        val expandedLabelWidth = calculateExpandedTextWidth(expandedBackgroundBounds.width())
+        val currentLabelWidth = appTitleContainer?.width ?: collapsedLabelWidth
         val initialBackground = Rect(backgroundRelativeLtrLocation)
         animator = AnimatorSet()
 
@@ -464,30 +477,18 @@ constructor(
             val textTranslationXWithRtl = if (isRtl) -textTranslationX else textTranslationX
             val arrowTranslationWithRtl = if (isRtl) -arrowTranslationX else arrowTranslationX
 
-            val expandAnimators = mutableListOf(
+            animator!!.playTogether(
                 backgroundAnimator,
+                buildTitleWidthAnimator(currentLabelWidth, expandedLabelWidth),
                 ObjectAnimator.ofFloat(iconView, SCALE_X, iconViewScaling),
                 ObjectAnimator.ofFloat(iconView, SCALE_Y, iconViewScaling),
-                ObjectAnimator.ofFloat(appTitle, TRANSLATION_X, textTranslationXWithRtl),
+                ObjectAnimator.ofFloat(appTitleContainer, TRANSLATION_X, textTranslationXWithRtl),
                 ObjectAnimator.ofFloat(iconArrowView, TRANSLATION_X, arrowTranslationWithRtl),
+                ObjectAnimator.ofFloat(iconArrowView, SCALE_Y, -1f),
             )
-            if (!isShowingLockIcon) {
-                expandAnimators.add(ObjectAnimator.ofFloat(iconArrowView, SCALE_Y, -1f))
-            }
-            animator!!.playTogether(*expandAnimators.toTypedArray())
             animator!!.duration = MENU_BACKGROUND_REVEAL_DURATION.toLong()
             status = AppChipStatus.Expanded
         } else {
-            // Clip expanded text with reveal animation so it doesn't go beyond the edge of the menu
-            val expandedTextClipAnim =
-                ViewAnimationUtils.createCircularReveal(
-                    appTitle,
-                    if (isRtl) appTitle!!.width else 0,
-                    appTitle!!.height / 2,
-                    appTitle!!.width.toFloat(),
-                    calculateCollapsedTextWidth(collapsedBackgroundBounds.width()).toFloat(),
-                )
-
             // Animate background clipping
             val backgroundAnimator =
                 ValueAnimator.ofObject(
@@ -499,17 +500,14 @@ constructor(
                 invalidateOutline()
             }
 
-            val collapseAnimators = mutableListOf(
-                expandedTextClipAnim,
+            animator!!.playTogether(
                 backgroundAnimator,
+                buildTitleWidthAnimator(currentLabelWidth, collapsedLabelWidth),
                 ObjectAnimator.ofFloat(iconView, SCALE_PROPERTY, 1f),
-                ObjectAnimator.ofFloat(appTitle, TRANSLATION_X, 0f),
+                ObjectAnimator.ofFloat(appTitleContainer, TRANSLATION_X, 0f),
                 ObjectAnimator.ofFloat(iconArrowView, TRANSLATION_X, 0f),
+                ObjectAnimator.ofFloat(iconArrowView, SCALE_Y, 1f),
             )
-            if (!isShowingLockIcon) {
-                collapseAnimators.add(ObjectAnimator.ofFloat(iconArrowView, SCALE_Y, 1f))
-            }
-            animator!!.playTogether(*collapseAnimators.toTypedArray())
             animator!!.duration = MENU_BACKGROUND_HIDE_DURATION.toLong()
             status = AppChipStatus.Collapsed
             sendToBack()
@@ -557,21 +555,17 @@ constructor(
      *   [calculateCollapsedTextWidth].
      */
     private fun updateChipSize() {
-        val chipWidth = getChipWidth()
-        when (status) {
-            AppChipStatus.Expanded -> {
-                updateLayoutParams { width = chipWidth }
-                appTitle!!.updateLayoutParams { width = calculateExpandedTextWidth(chipWidth) }
-            }
-            AppChipStatus.Collapsed -> {
-                appTitle!!.updateLayoutParams {
-                    val collapsedBackgroundWidth = getCollapsedBackgroundLtrBounds().width()
-                    width = calculateCollapsedTextWidth(collapsedBackgroundWidth)
-                }
-                updateLayoutParams { width = chipWidth }
+        updateLayoutParams { width = getChipWidth() }
+    }
+
+    private fun buildTitleWidthAnimator(fromWidth: Int, toWidth: Int): ValueAnimator =
+        ValueAnimator.ofInt(fromWidth, toWidth).apply {
+            addUpdateListener { anim ->
+                val w = (anim.animatedValue as Int).coerceAtLeast(0)
+                appTitleContainer?.updateLayoutParams { width = w }
+                appTitle?.updateLayoutParams { width = w }
             }
         }
-    }
 
     private fun getCollapsedBackgroundLtrBounds(): Rect {
         val bounds = Rect(0, 0, minimumWidth, collapsedMenuDefaultHeight)
@@ -659,21 +653,38 @@ constructor(
     fun reset() {
         setText(null)
         drawable = null
+        setLockState(false)
     }
 
     fun setLockState(isLocked: Boolean) {
-        isShowingLockIcon = isLocked
-        if (isLocked) {
-            iconArrowView?.setImageResource(R.drawable.recents_locked)
-            iconArrowView?.imageTintList = ColorStateList.valueOf(
-                resources.getColor(R.color.recent_app_locked_icon_color, context.theme)
-            )
-            iconArrowView?.scaleY = 1f
-        } else {
-            iconArrowView?.setImageResource(R.drawable.ic_chevron_down)
-            iconArrowView?.imageTintList = null
-            iconArrowView?.scaleY = 1f
-        }
+        if (isLockedInRecents == isLocked) return
+        isLockedInRecents = isLocked
+        applyLockedVisualState()
+    }
+
+    private fun applyLockedVisualState() {
+        val isLocked = isLockedInRecents
+        setBackgroundColor(if (isLocked) lockedBackgroundColor else defaultBackgroundColor)
+        val tint = if (isLocked) lockedLabelColor else defaultLabelColor
+        appTitle?.setTextColor(tint)
+        updateTitleLockDrawable()
+        iconArrowView?.imageTintList = ColorStateList.valueOf(tint)
+        iconArrowView?.backgroundTintList =
+            if (isLocked) ColorStateList.valueOf(lockedBackgroundColor) else null
+    }
+
+    private fun updateTitleLockDrawable() {
+        val title = appTitle ?: return
+        val lockDrawable =
+            if (isLockedInRecents) {
+                ContextCompat.getDrawable(context, R.drawable.ic_protected_locked)
+                    ?.mutate()
+                    ?.apply {
+                        setBounds(0, 0, lockIconSize, lockIconSize)
+                        setTint(lockedLabelColor)
+                    }
+            } else null
+        title.setCompoundDrawablesRelative(null, null, lockDrawable, null)
     }
 
     override fun asView(): View = this
