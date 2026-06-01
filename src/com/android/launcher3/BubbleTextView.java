@@ -82,6 +82,7 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
 import com.android.launcher3.accessibility.BaseAccessibilityDelegate;
 import com.android.launcher3.dot.DotInfo;
+import com.android.launcher3.dot.NotificationBadgeCounter;
 import com.android.launcher3.dragndrop.DragOptions.PreDragCondition;
 import com.android.launcher3.dragndrop.DraggableView;
 import com.android.launcher3.folder.FolderIcon;
@@ -208,6 +209,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     @ViewDebug.ExportedProperty(category = "launcher")
     private DotInfo mDotInfo;
     private final DotRenderer mDotRenderer;
+    private final NotificationBadgeCounter mNotificationBadgeCounter;
+    private final int mDotColor;
     @ViewDebug.ExportedProperty(category = "launcher", deepExport = true)
     protected final DotRenderer.DrawParams mDotParams;
     private Animator mDotScaleAnim;
@@ -337,7 +340,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mLongPressHelper = new CheckLongPressHelper(this);
 
         mDotParams = new DotRenderer.DrawParams();
-        mDotParams.setDotColor(Themes.getAttrColor(context, R.attr.notificationDotColor));
+        mDotColor = Themes.getAttrColor(context, R.attr.notificationDotColor);
+        mDotParams.setDotColor(mDotColor);
+        mNotificationBadgeCounter = new NotificationBadgeCounter();
 
         if (mDisplay == DISPLAY_ALL_APPS) {
             mDotRenderer = mActivity.getDeviceProfile().mDotRendererAllApps;
@@ -867,9 +872,18 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             final int scrollX = getScrollX();
             final int scrollY = getScrollY();
             canvas.translate(scrollX, scrollY);
-            mDotRenderer.draw(canvas, mDotParams);
+            if (shouldShowNotificationCount()) {
+                mNotificationBadgeCounter.draw(canvas, mDotParams, mDotColor,
+                        mDotInfo == null ? 0 : mDotInfo.getNotificationCount());
+            } else {
+                mDotRenderer.draw(canvas, mDotParams);
+            }
             canvas.translate(-scrollX, -scrollY);
         }
+    }
+
+    private boolean shouldShowNotificationCount() {
+        return mDotInfo != null && LauncherPrefs.NOTIFICATION_BADGE_COUNT.get(getContext());
     }
 
     /** Draws a background behind the App Title label when required. **/
