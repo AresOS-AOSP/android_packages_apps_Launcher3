@@ -554,13 +554,15 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public boolean isAllAppsBackgroundBlurEnabled() {
         return mDepthController != null && mDepthController.isCrossWindowBlursEnabled()
-                && Flags.allAppsBlur();
+                && Flags.allAppsBlur()
+                && LauncherPrefs.BLUR_DEPTH.get(this) > 0;
     }
 
     @Override
     public boolean isOverviewBackgroundBlurEnabled() {
         return mDepthController != null && mDepthController.isCrossWindowBlursEnabled()
-                && enableOverviewBackgroundWallpaperBlur();
+                && enableOverviewBackgroundWallpaperBlur()
+                && LauncherPrefs.BLUR_DEPTH.get(this) > 0;
     }
 
     /** Apply the blur or blur fallback style to the current theme. */

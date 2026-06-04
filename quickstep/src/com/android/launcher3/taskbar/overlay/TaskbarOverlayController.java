@@ -46,6 +46,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarControllers;
@@ -314,7 +315,8 @@ public final class TaskbarOverlayController {
 
     boolean isBackgroundBlurEnabled() {
         return BlurUtils.supportsBlursOnWindows()
-                && CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled();
+                && CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled()
+                && LauncherPrefs.BLUR_DEPTH.get(mTaskbarContext) > 0;
     }
 
     /** Returns {@code true} if overlay or Taskbar windows are handling a system drag. */
