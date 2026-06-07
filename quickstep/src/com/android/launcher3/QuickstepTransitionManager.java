@@ -209,13 +209,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
      */
     public static final int STATUS_BAR_TRANSITION_PRE_DELAY = 96;
 
-    public static final long APP_LAUNCH_DURATION = 480;
+    public static final long APP_LAUNCH_DURATION = 350;
 
-    private static final long APP_LAUNCH_ALPHA_DURATION = 125;
-    private static final long APP_LAUNCH_ALPHA_START_DELAY = 25;
+    private static final long APP_LAUNCH_ALPHA_DURATION = 90;
+    private static final long APP_LAUNCH_ALPHA_START_DELAY = 18;
 
     public static final int ANIMATION_NAV_FADE_IN_DURATION = 266;
-    public static final int ANIMATION_NAV_FADE_OUT_DURATION = 160;
+    public static final int ANIMATION_NAV_FADE_OUT_DURATION = 116;
     public static final long ANIMATION_DELAY_NAV_FADE_IN =
             APP_LAUNCH_DURATION - ANIMATION_NAV_FADE_IN_DURATION;
     public static final Interpolator NAV_FADE_IN_INTERPOLATOR =
@@ -237,12 +237,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     // is solved.
     private static final int TASKBAR_TO_HOME_DURATION_FAST = 300;
     private static final int TASKBAR_TO_HOME_DURATION_SLOW = 1000;
-    protected static final int CONTENT_SCALE_DURATION = 350;
+    protected static final int CONTENT_SCALE_DURATION = 250;
 
     private static final int MAX_NUM_TASKS = 5;
 
     // Cross-fade duration between App Widget and App when launching from widget.
-    private static final int WIDGET_CROSSFADE_DURATION_MILLIS = 180;
+    private static final int WIDGET_CROSSFADE_DURATION_MILLIS = 130;
 
     private static final float MAX_SCRIM_ALPHA_DARK = 0.8f;
     private static final float MAX_SCRIM_ALPHA_LIGHT = 0.2f;
