@@ -31,6 +31,8 @@
     <string name="settings_edit_widgets_error">No es posible añadir widgets a la pantalla de inicio</string>
     <string name="desktop_show_labels">Mostrar etiquetas de iconos en el escritorio</string>
     <string name="drawer_show_labels">Mostrar etiquetas de iconos en el cajón</string>
+    <string name="pref_show_hotseat_qsb_title">Mostrar barra de búsqueda</string>
+    <string name="pref_show_hotseat_qsb_summary">En la parte inferior de la pantalla de inicio</string>
     <string name="drawer_open_keyboard_title">Desliza para iniciar la búsqueda</string>
     <string name="drawer_open_keyboard_summary">Abrir el teclado cuando el cajón de aplicaciones esté visible</string>
     <string name="title_show_google_app">Mostrar aplicación de Google</string>

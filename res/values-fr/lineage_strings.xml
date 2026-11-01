@@ -31,6 +31,8 @@
     <string name="settings_edit_widgets_error">Impossible d\'ajouter des widgets sur l\'écran d\'accueil</string>
     <string name="desktop_show_labels">Afficher le libellé des icônes sur le bureau</string>
     <string name="drawer_show_labels">Afficher le libellé des icônes dans le tiroir</string>
+    <string name="pref_show_hotseat_qsb_title">Afficher la barre de recherche</string>
+    <string name="pref_show_hotseat_qsb_summary">En bas de votre écran d\'accueil</string>
     <string name="drawer_open_keyboard_title">Glisser pour commencer la recherche</string>
     <string name="drawer_open_keyboard_summary">Ouvrir le clavier chaque fois que le tiroir d\'applis devient visible</string>
     <string name="title_show_google_app">Afficher l\'application Google</string>
